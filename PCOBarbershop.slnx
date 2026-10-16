@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="pcobarbershop.client/pcobarbershop.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="PCOBarbershop.Server/PCOBarbershop.Server.csproj" />
+</Solution>
