@@ -7,6 +7,7 @@
     <SpaRoot>..\pcobarbershop.client</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:49297</SpaProxyServerUrl>
+    <UserSecretsId>359320be-759e-41a8-923a-dd04d1f66b7a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
