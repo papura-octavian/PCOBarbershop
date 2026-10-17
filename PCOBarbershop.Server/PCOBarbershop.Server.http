@@ -1,0 +1,28 @@
+@baseUrl = https://localhost:7077
+
+### 1. Inregistrare
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "client@test.com",
+  "password": "Parola123",
+  "firstName": "Test",
+  "lastName": "Client"
+}
+
+### 2. Login (copiaza tokenul din raspuns)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "client@test.com",
+  "password": "Parola123"
+}
+
+### 3. Endpoint protejat
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer -token-
+
+### 4. Fara token (trebuie sa dea 401)
+GET {{baseUrl}}/api/auth/me
