@@ -74,6 +74,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedBarbersAsync(scope.ServiceProvider, app.Configuration);
+}
+
 app.UseDefaultFiles();
 app.MapStaticAssets();
 

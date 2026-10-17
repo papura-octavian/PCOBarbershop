@@ -22,7 +22,27 @@ Content-Type: application/json
 
 ### 3. Endpoint protejat
 GET {{baseUrl}}/api/auth/me
-Authorization: Bearer -token-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjI3NjU0OCwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiI5N2QyYjQ3OS1jMDFhLTQ2MTYtODRjMi1hYjc4NzQ2ZmUwMjIiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyMjcyOTQ4LCJuYmYiOjE3OTIyNzI5NDh9.nBvNeknWG506zBb01R8azEKwtM3WgHjsdS2MRQ5eX9o
 
 ### 4. Fara token (trebuie sa dea 401)
 GET {{baseUrl}}/api/auth/me
+
+### 5. Login frizer (copiaza tokenul)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "frizer1@test.com",
+  "password": "Frizer1234"
+}
+
+### 6. Endpoint de frizer cu token de frizer (trebuie 200)
+GET {{baseUrl}}/api/auth/barber-only
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjI3NjQ5OSwic3ViIjoiZmM3OGFhODUtYTdmYS00NmM1LWExMDUtMWE3ZGEwMjQxMGZmIiwiZW1haWwiOiJmcml6ZXIxQHRlc3QuY29tIiwianRpIjoiZWNmMzNhOWUtODc5Yy00YzA4LWEyYjAtZjRiYTk5MjI3NWYyIiwicm9sZSI6IkZyaXplciIsImlhdCI6MTc5MjI3Mjg5OSwibmJmIjoxNzkyMjcyODk5fQ.6vbPAy8WOINLPNVg7YrKr3ZlVv1CTt6-fLclShMjvyE
+
+### 7. Endpoint de frizer cu token de client (trebuie 403)
+GET {{baseUrl}}/api/auth/barber-only
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjI3NjU0OCwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiI5N2QyYjQ3OS1jMDFhLTQ2MTYtODRjMi1hYjc4NzQ2ZmUwMjIiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyMjcyOTQ4LCJuYmYiOjE3OTIyNzI5NDh9.nBvNeknWG506zBb01R8azEKwtM3WgHjsdS2MRQ5eX9o
+
+### 8. Endpoint de frizer fara token (trebuie 401)
+GET {{baseUrl}}/api/auth/barber-only
