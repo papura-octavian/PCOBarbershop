@@ -1,2 +1,19 @@
-<h1>{{ title() }}</h1>
-<router-outlet />
+<mat-toolbar>
+  <a routerLink="/" class="brand">{{ title() }}</a>
+  <span class="spacer"></span>
+
+  @if (auth.currentUser(); as user) {
+  @if (auth.hasRole('Frizer')) {
+  <a mat-button routerLink="/barber">Zona frizerului</a>
+  }
+  <span class="user-email">{{ user.email }}</span>
+  <button mat-button type="button" (click)="logout()">Deconectare</button>
+  } @else {
+  <a mat-button routerLink="/login">Autentificare</a>
+  <a mat-button routerLink="/register">Creeaza cont</a>
+  }
+</mat-toolbar>
+
+<main>
+  <router-outlet />
+</main>

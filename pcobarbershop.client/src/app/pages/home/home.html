@@ -1,0 +1,17 @@
+<div class="home">
+  <h1>PCO Barbershop</h1>
+
+  @if (auth.currentUser(); as user) {
+  <p>Esti autentificat ca <strong>{{ user.email }}</strong> ({{ user.roles.join(', ') }}).</p>
+
+  @if (auth.hasRole('Frizer')) {
+  <a mat-flat-button routerLink="/barber">Zona frizerului</a>
+  }
+  } @else {
+  <p>Rezerva-ti online programarea la frizerie. Autentifica-te sau creeaza un cont ca sa continui.</p>
+  <div class="actions">
+    <a mat-flat-button routerLink="/login">Autentificare</a>
+    <a mat-stroked-button routerLink="/register">Creeaza cont</a>
+  </div>
+  }
+</div>
