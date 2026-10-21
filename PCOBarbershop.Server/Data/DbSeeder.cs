@@ -60,10 +60,10 @@ namespace PCOBarbershop.Server.Data
         {
             var services = new[]
             {
-            new Service { Name = "Tuns simplu", Price = 80m, DurationMinutes = 40 },
-            new Service { Name = "Tuns + Barba", Price = 100m, DurationMinutes = 60 },
-            new Service { Name = "Barba", Price = 20m, DurationMinutes = 20 }
-        };
+                new Service { Name = "Tuns simplu", Price = 80m, DurationMinutes = 40 },
+                new Service { Name = "Tuns + Barba", Price = 100m, DurationMinutes = 60 },
+                new Service { Name = "Barba", Price = 20m, DurationMinutes = 20 }
+            };
 
             foreach (var service in services)
             {
@@ -71,6 +71,39 @@ namespace PCOBarbershop.Server.Data
                 if (!await db.Services.AnyAsync(s => s.Name == service.Name))
                 {
                     db.Services.Add(service);
+                }
+            }
+
+            await db.SaveChangesAsync();
+        }
+
+        public static async Task SeedWorkingHoursAsync(AppDbContext db)
+        {
+            var workDays = new[]
+            {
+                DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+                DayOfWeek.Thursday, DayOfWeek.Friday
+            };
+
+            var barbers = await db.Barbers.ToListAsync();
+
+            foreach (var barber in barbers)
+            {
+                // daca frizerul are deja program, nu il atingem (nu suprascriem modificarile lui)
+                if (await db.WorkingHours.AnyAsync(w => w.BarberId == barber.Id))
+                {
+                    continue;
+                }
+
+                foreach (var day in workDays)
+                {
+                    db.WorkingHours.Add(new WorkingHours
+                    {
+                        BarberId = barber.Id,
+                        DayOfWeek = day,
+                        StartTime = new TimeOnly(9, 0),
+                        EndTime = new TimeOnly(17, 0)
+                    });
                 }
             }
 

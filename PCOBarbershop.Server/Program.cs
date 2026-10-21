@@ -87,6 +87,15 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedServicesAsync(db);
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await DbSeeder.SeedBarbersAsync(scope.ServiceProvider, app.Configuration);
+    await DbSeeder.SeedWorkingHoursAsync(db);
+    await DbSeeder.SeedServicesAsync(db);
+}
+
 app.UseDefaultFiles();
 app.MapStaticAssets();
 

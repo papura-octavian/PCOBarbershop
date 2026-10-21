@@ -49,3 +49,23 @@ GET {{baseUrl}}/api/auth/barber-only
 
 ### 9. Lista de servicii (public, fara token)
 GET {{baseUrl}}/api/services
+
+### 10. Login frizer (copiaza tokenul)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "frizer1@test.com",
+  "password": "Frizer1234"
+}
+
+### 11. Programul meu, cu token de frizer (trebuie 200, 5 randuri)
+GET {{baseUrl}}/api/barbers/me/schedule
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjU3NTE3NSwic3ViIjoiZmM3OGFhODUtYTdmYS00NmM1LWExMDUtMWE3ZGEwMjQxMGZmIiwiZW1haWwiOiJmcml6ZXIxQHRlc3QuY29tIiwianRpIjoiYjJiZDJjNDAtMmM3ZS00MGJlLTljMGYtNDU0Mzc5YWM5MjRiIiwicm9sZSI6IkZyaXplciIsImlhdCI6MTc5MjU3MTU3NSwibmJmIjoxNzkyNTcxNTc1fQ.yKWgVbttB_tltfDiMOnVIY9MGHG8OW59PYfVWk8-gFw
+
+### 12. Programul meu, cu token de client (trebuie 403)
+GET {{baseUrl}}/api/barbers/me/schedule
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjI3NjU0OCwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiI5N2QyYjQ3OS1jMDFhLTQ2MTYtODRjMi1hYjc4NzQ2ZmUwMjIiLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyMjcyOTQ4LCJuYmYiOjE3OTIyNzI5NDh9.nBvNeknWG506zBb01R8azEKwtM3WgHjsdS2MRQ5eX9o
+
+### 13. Programul meu, fara token (trebuie 401)
+GET {{baseUrl}}/api/barbers/me/schedule

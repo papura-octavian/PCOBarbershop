@@ -1,4 +1,33 @@
 <div class="barber-area">
   <h1>Zona frizerului</h1>
-  <p>Aici vor aparea programul de lucru si programarile tale.</p>
+  <h2>Programul tau de lucru</h2>
+
+  @if (loading()) {
+  <p>Se incarca programul...</p>
+  } @else if (error()) {
+  <p class="form-error">{{ error() }}</p>
+  } @else if (schedule().length === 0) {
+  <p>Nu ai niciun interval de lucru setat.</p>
+  } @else {
+  <table class="schedule">
+    <thead>
+      <tr>
+        <th>Ziua</th>
+        <th>De la</th>
+        <th>Pana la</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of schedule(); track item.dayOfWeek) {
+      <tr>
+        <td>{{ dayName(item.dayOfWeek) }}</td>
+        <td>{{ time(item.startTime) }}</td>
+        <td>{{ time(item.endTime) }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+
+  <p class="note">Editarea programului si zilele libere vor fi adaugate ulterior.</p>
+  }
 </div>
