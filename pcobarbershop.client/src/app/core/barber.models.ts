@@ -3,3 +3,13 @@ export interface WorkingHoursItem {
   startTime: string;   // "09:00:00"
   endTime: string;
 }
+
+export interface BarberItem {
+  id: number;
+  displayName: string;
+}
+
+export interface SlotItem {
+  startUtc: string;   // se trimite la rezervare
+  time: string;       // "09:20", ora locala afisata
+}

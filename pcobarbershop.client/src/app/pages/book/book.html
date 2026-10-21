@@ -1,0 +1,68 @@
+<div class="book">
+  <h1>Rezerva o programare</h1>
+
+  @if (loading()) {
+  <p>Se incarca...</p>
+  } @else if (error()) {
+  <p class="form-error">{{ error() }}</p>
+  } @else {
+  <form [formGroup]="form" class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Serviciu</mat-label>
+      <mat-select formControlName="serviceId">
+        @for (service of services(); track service.id) {
+        <mat-option [value]="service.id">
+          {{ service.name }} ({{ service.durationMinutes }} min, {{ service.price }} RON)
+        </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Frizer</mat-label>
+      <mat-select formControlName="barberId">
+        @for (barber of barbers(); track barber.id) {
+        <mat-option [value]="barber.id">{{ barber.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data</mat-label>
+      <input matInput type="date" formControlName="date" [min]="minDate" [max]="maxDate" />
+    </mat-form-field>
+  </form>
+
+  <h2>Ore disponibile</h2>
+
+  @if (slotsLoading()) {
+  <p>Se cauta orele libere...</p>
+  } @else if (slotsError()) {
+  <p class="form-error">{{ slotsError() }}</p>
+  } @else if (!slotsLoaded()) {
+  <p class="hint">Alege serviciul, frizerul si data ca sa vezi orele libere.</p>
+  } @else if (slots().length === 0) {
+  <p>Nu sunt ore libere in aceasta zi. Incearca alta data sau alt frizer.</p>
+  } @else {
+  <div class="slots">
+    @for (slot of slots(); track slot.startUtc) {
+    <button mat-stroked-button
+            type="button"
+            class="slot"
+            [class.selected]="slot.startUtc === selectedSlot()?.startUtc"
+            (click)="selectSlot(slot)">
+      {{ slot.time }}
+    </button>
+    }
+  </div>
+  }
+
+  @if (summary(); as s) {
+  <p class="summary">
+    Ai ales <strong>{{ s.service.name }}</strong> cu <strong>{{ s.barber.displayName }}</strong>,
+    pe <strong>{{ s.date }}</strong>, la <strong>{{ s.time }}</strong>.
+    Confirmarea rezervarii vine la taskul urmator.
+  </p>
+  }
+  }
+</div>

@@ -1,0 +1,35 @@
+.book {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.slot.selected {
+  background: var(--mat-sys-primary, #6750a4);
+  color: var(--mat-sys-on-primary, #ffffff);
+}
+
+.hint {
+  opacity: 0.7;
+}
+
+.summary {
+  margin-top: 1.5rem;
+}
+
+.form-error {
+  color: #b3261e;
+}

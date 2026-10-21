@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using PCOBarbershop.Server.Data;
 using PCOBarbershop.Server.Dtos;
+using PCOBarbershop.Server.Services;
 
 namespace PCOBarbershop.Server.Controllers;
 
@@ -13,10 +14,54 @@ namespace PCOBarbershop.Server.Controllers;
 public class BarbersController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IAvailabilityService _availability;
 
-    public BarbersController(AppDbContext db)
+    public BarbersController(AppDbContext db, IAvailabilityService availability)
     {
         _db = db;
+        _availability = availability;
+    }
+
+    // GET /api/barbers - lista frizerilor (public)
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<ActionResult<List<BarberDto>>> GetAll()
+    {
+        var barbers = await _db.Barbers
+            .AsNoTracking()
+            .OrderBy(b => b.DisplayName)
+            .Select(b => new BarberDto(b.Id, b.DisplayName))
+            .ToListAsync();
+
+        return Ok(barbers);
+    }
+
+    // GET /api/barbers/1/slots?date=2026-10-26&serviceId=2 - orele libere (public)
+    [AllowAnonymous]
+    [HttpGet("{barberId:int}/slots")]
+    public async Task<ActionResult<List<SlotDto>>> GetSlots(
+        int barberId,
+        [FromQuery] DateOnly? date,
+        [FromQuery] int serviceId)
+    {
+        if (date is null)
+        {
+            return BadRequest(new { message = "Parametrul 'date' este obligatoriu (format yyyy-MM-dd)." });
+        }
+
+        var service = await _db.Services.AsNoTracking().FirstOrDefaultAsync(s => s.Id == serviceId);
+        if (service is null)
+        {
+            return NotFound(new { message = "Serviciul nu exista." });
+        }
+
+        if (!await _db.Barbers.AnyAsync(b => b.Id == barberId))
+        {
+            return NotFound(new { message = "Frizerul nu exista." });
+        }
+
+        var slots = await _availability.GetFreeSlotsAsync(barberId, service.DurationMinutes, date.Value);
+        return Ok(slots);
     }
 
     // Programul frizerului logat.

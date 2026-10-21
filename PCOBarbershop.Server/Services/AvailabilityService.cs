@@ -1,0 +1,99 @@
+﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
+using PCOBarbershop.Server.Data;
+using PCOBarbershop.Server.Dtos;
+using PCOBarbershop.Server.Models;
+
+namespace PCOBarbershop.Server.Services;
+
+public interface IAvailabilityService
+{
+    Task<List<SlotDto>> GetFreeSlotsAsync(int barberId, int durationMinutes, DateOnly date);
+}
+
+public class AvailabilityService : IAvailabilityService
+{
+    // Un slot poate incepe din 20 in 20 de minute (cel mai mare divizor comun al duratelor: 20, 40, 60)
+    private const int SlotStepMinutes = 20;
+
+    // Cat de departe in viitor se poate rezerva
+    private const int MaxDaysAhead = 60;
+
+    // Fusul orar al salonului. Daca da eroare pe Windows, foloseste "E. Europe Standard Time".
+    private static readonly TimeZoneInfo SalonZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Bucharest");
+
+    private readonly AppDbContext _db;
+
+    public AvailabilityService(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<List<SlotDto>> GetFreeSlotsAsync(int barberId, int durationMinutes, DateOnly date)
+    {
+        var nowUtc = DateTime.UtcNow;
+        var todayLocal = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(nowUtc, SalonZone));
+
+        // zile trecute sau prea departe in viitor: nu exista sloturi
+        if (date < todayLocal || date > todayLocal.AddDays(MaxDaysAhead))
+        {
+            return new List<SlotDto>();
+        }
+
+        // 1. programul frizerului in ziua respectiva a saptamanii
+        var hours = await _db.WorkingHours
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.BarberId == barberId && w.DayOfWeek == date.DayOfWeek);
+
+        if (hours is null)
+        {
+            return new List<SlotDto>();   // zi libera
+        }
+
+        var windowStartUtc = ToUtc(date, hours.StartTime);
+        var windowEndUtc = ToUtc(date, hours.EndTime);
+
+        // 2. programarile existente care ating intervalul de lucru (fara cele anulate)
+        var busy = await _db.Appointments
+            .AsNoTracking()
+            .Where(a => a.BarberId == barberId
+                        && a.Status != AppointmentStatus.Cancelled
+                        && a.StartTime < windowEndUtc
+                        && a.EndTime > windowStartUtc)
+            .Select(a => new { a.StartTime, a.EndTime })
+            .ToListAsync();
+
+        // 3. generam slotul si il pastram doar daca incape, e in viitor si e liber
+        var duration = TimeSpan.FromMinutes(durationMinutes);
+        var step = TimeSpan.FromMinutes(SlotStepMinutes);
+        var slots = new List<SlotDto>();
+
+        for (var start = windowStartUtc; start + duration <= windowEndUtc; start += step)
+        {
+            var end = start + duration;
+
+            if (start <= nowUtc)
+            {
+                continue;
+            }
+
+            var overlaps = busy.Any(b => b.StartTime < end && b.EndTime > start);
+            if (overlaps)
+            {
+                continue;
+            }
+
+            var local = TimeZoneInfo.ConvertTimeFromUtc(start, SalonZone);
+            slots.Add(new SlotDto(start, local.ToString("HH:mm", CultureInfo.InvariantCulture)));
+        }
+
+        return slots;
+    }
+
+    // Ora locala a salonului -> UTC
+    private static DateTime ToUtc(DateOnly date, TimeOnly time)
+    {
+        var local = DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(local, SalonZone);
+    }
+}

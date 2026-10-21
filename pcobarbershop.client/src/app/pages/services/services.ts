@@ -4,6 +4,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { ServiceItem } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
+import { MatButtonModule } from '@angular/material/button';
+import { Router } from '@angular/router';  
+
 
 @Component({
   selector: 'app-services',
@@ -13,6 +16,7 @@ import { CatalogService } from '../../core/catalog.service';
 })
 export class Services implements OnInit {
   private readonly catalog = inject(CatalogService);
+  private readonly router = inject(Router);  
 
   readonly services = signal<ServiceItem[]>([]);
   readonly loading = signal(true);
@@ -40,4 +44,9 @@ export class Services implements OnInit {
   select(id: number): void {
     this.selectedId.set(id);
   }
+
+  continueToBooking(): void {
+    this.router.navigate(['/book'], { queryParams: { serviceId: this.selectedId() } });
+  } 
+
 }

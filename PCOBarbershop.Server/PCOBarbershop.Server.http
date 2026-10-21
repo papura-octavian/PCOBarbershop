@@ -69,3 +69,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZ
 
 ### 13. Programul meu, fara token (trebuie 401)
 GET {{baseUrl}}/api/barbers/me/schedule
+
+### 14. Lista frizerilor (public)
+GET {{baseUrl}}/api/barbers
+
+### 15. Sloturi luni, frizer 1, serviciul 2 (60 min)
+GET {{baseUrl}}/api/barbers/1/slots?date=2026-10-26&serviceId=2
+
+### 16. Sloturi sambata (zi libera, trebuie lista goala)
+GET {{baseUrl}}/api/barbers/1/slots?date=2026-10-24&serviceId=2
+
+### 17. Fara data (trebuie 400)
+GET {{baseUrl}}/api/barbers/1/slots?serviceId=2
+
+### 18. Serviciu inexistent (trebuie 404)
+GET {{baseUrl}}/api/barbers/1/slots?date=2026-10-26&serviceId=99

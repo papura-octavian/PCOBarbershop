@@ -2,34 +2,37 @@
   <h1>Servicii</h1>
 
   @if (loading()) {
-  <p>Se incarca serviciile...</p>
+    <p>Se incarca serviciile...</p>
   } @else if (error()) {
-  <p class="form-error">{{ error() }}</p>
+    <p class="form-error">{{ error() }}</p>
   } @else {
-  <mat-radio-group class="list"
-                   [value]="selectedId()"
-                   (change)="select($event.value)"
-                   aria-label="Alege un serviciu">
-    @for (service of services(); track service.id) {
-    <mat-card class="service" [class.selected]="service.id === selectedId()">
-      <mat-card-content>
-        <mat-radio-button [value]="service.id">
-          <span class="name">{{ service.name }}</span>
-        </mat-radio-button>
-        <div class="details">
-          <span>{{ service.durationMinutes }} min</span>
-          <span class="price">{{ service.price | number: '1.0-2' }} RON</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
-    }
-  </mat-radio-group>
+    <mat-radio-group class="list"
+                     [value]="selectedId()"
+                     (change)="select($event.value)"
+                     aria-label="Alege un serviciu">
+      @for (service of services(); track service.id) {
+        <mat-card class="service" [class.selected]="service.id === selectedId()">
+          <mat-card-content>
+            <mat-radio-button [value]="service.id">
+              <span class="name">{{ service.name }}</span>
+            </mat-radio-button>
+            <div class="details">
+              <span>{{ service.durationMinutes }} min</span>
+              <span class="price">{{ service.price | number: '1.0-2' }} RON</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </mat-radio-group>
 
-  @if (selected(); as s) {
-  <p class="summary">
-    Ai ales <strong>{{ s.name }}</strong> ({{ s.durationMinutes }} min,
-    {{ s.price | number: '1.0-2' }} RON). Alegerea frizerului si a orei vine la taskurile urmatoare.
-  </p>
-  }
+    @if (selected(); as s) {
+      <p class="summary">
+        Ai ales <strong>{{ s.name }}</strong> ({{ s.durationMinutes }} min,
+        {{ s.price | number: '1.0-2' }} RON).
+      </p>
+      <button mat-flat-button type="button" (click)="continueToBooking()">
+        Continua la alegerea frizerului si a orei
+      </button>
+     }
   }
 </div>
