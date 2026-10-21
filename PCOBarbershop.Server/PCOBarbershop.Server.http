@@ -46,3 +46,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZ
 
 ### 8. Endpoint de frizer fara token (trebuie 401)
 GET {{baseUrl}}/api/auth/barber-only
+
+### 9. Lista de servicii (public, fara token)
+GET {{baseUrl}}/api/services

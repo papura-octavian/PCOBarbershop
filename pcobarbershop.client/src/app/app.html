@@ -2,6 +2,8 @@
   <a routerLink="/" class="brand">{{ title() }}</a>
   <span class="spacer"></span>
 
+  <a mat-button routerLink="/services">Servicii</a>
+
   @if (auth.currentUser(); as user) {
   @if (auth.hasRole('Frizer')) {
   <a mat-button routerLink="/barber">Zona frizerului</a>

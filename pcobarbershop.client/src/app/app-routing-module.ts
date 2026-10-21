@@ -5,12 +5,14 @@ import { BarberArea } from './pages/barber-area/barber-area';
 import { Home } from './pages/home/home';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
+import { Services } from './pages/services/services';
 
 const routes: Routes = [
   { path: '', component: Home, pathMatch: 'full' },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
   { path: 'barber', component: BarberArea, canActivate: [roleGuard('Frizer')] },
+  { path: 'services', component: Services },
   { path: '**', redirectTo: '' },
 ];
 

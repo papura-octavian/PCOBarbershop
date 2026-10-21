@@ -55,5 +55,26 @@ namespace PCOBarbershop.Server.Data
                 }
             }
         }
+
+        public static async Task SeedServicesAsync(AppDbContext db)
+        {
+            var services = new[]
+            {
+            new Service { Name = "Tuns simplu", Price = 80m, DurationMinutes = 40 },
+            new Service { Name = "Tuns + Barba", Price = 100m, DurationMinutes = 60 },
+            new Service { Name = "Barba", Price = 20m, DurationMinutes = 20 }
+        };
+
+            foreach (var service in services)
+            {
+                // adaugam serviciul doar daca nu exista deja unul cu acelasi nume
+                if (!await db.Services.AnyAsync(s => s.Name == service.Name))
+                {
+                    db.Services.Add(service);
+                }
+            }
+
+            await db.SaveChangesAsync();
+        }
     }
 }
