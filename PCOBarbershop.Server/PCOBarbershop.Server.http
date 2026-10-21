@@ -84,3 +84,66 @@ GET {{baseUrl}}/api/barbers/1/slots?serviceId=2
 
 ### 18. Serviciu inexistent (trebuie 404)
 GET {{baseUrl}}/api/barbers/1/slots?date=2026-10-26&serviceId=99
+
+### 19. Login client (copiaza tokenul)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "client@test.com",
+  "password": "Parola123"
+}
+
+### 20. Creeaza programare (trebuie 201)
+POST {{baseUrl}}/api/appointments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjYwODI5Niwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiJlYjM1MGFjMS0xOTdlLTQ4Y2YtYWEwOC04MjI1Mzg4MTlmMjciLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyNjA0Njk2LCJuYmYiOjE3OTI2MDQ2OTZ9.WOX9ddxSUTIXRRibMNkQURYXe9nDNVLHgWBDzOBR_4c
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "startUtc": "2026-10-26T07:00:00Z"
+}
+
+### 21. Aceeasi cerere din nou (trebuie 409)
+POST {{baseUrl}}/api/appointments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjYwODI5Niwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiJlYjM1MGFjMS0xOTdlLTQ4Y2YtYWEwOC04MjI1Mzg4MTlmMjciLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyNjA0Njk2LCJuYmYiOjE3OTI2MDQ2OTZ9.WOX9ddxSUTIXRRibMNkQURYXe9nDNVLHgWBDzOBR_4c
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "startUtc": "2026-10-26T07:00:00Z"
+}
+
+### 22. Ora care se suprapune partial (trebuie 409)
+POST {{baseUrl}}/api/appointments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjYwODI5Niwic3ViIjoiZWUxMjU3MjUtMzczMS00ZDQ5LTgzZjUtYjNlZWZjYWViODEzIiwiZW1haWwiOiJjbGllbnRAdGVzdC5jb20iLCJqdGkiOiJlYjM1MGFjMS0xOTdlLTQ4Y2YtYWEwOC04MjI1Mzg4MTlmMjciLCJyb2xlIjoiQ2xpZW50IiwiaWF0IjoxNzkyNjA0Njk2LCJuYmYiOjE3OTI2MDQ2OTZ9.WOX9ddxSUTIXRRibMNkQURYXe9nDNVLHgWBDzOBR_4c
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 3,
+  "startUtc": "2026-10-26T07:20:00Z"
+}
+
+### 23. Fara token (trebuie 401)
+POST {{baseUrl}}/api/appointments
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "startUtc": "2026-10-26T08:00:00Z"
+}
+
+### 24. Cu token de frizer (trebuie 403; logheaza-te mai intai ca frizer1@test.com)
+POST {{baseUrl}}/api/appointments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJQQ09CYXJiZXJzaG9wQ2xpZW50IiwiaXNzIjoiUENPQmFyYmVyc2hvcCIsImV4cCI6MTc5MjYwODQ1MSwic3ViIjoiZmM3OGFhODUtYTdmYS00NmM1LWExMDUtMWE3ZGEwMjQxMGZmIiwiZW1haWwiOiJmcml6ZXIxQHRlc3QuY29tIiwianRpIjoiYzNkYzk5NTAtZDI0Zi00MDM2LTlhOTctMmNkYTM3NjhjYjY0Iiwicm9sZSI6IkZyaXplciIsImlhdCI6MTc5MjYwNDg1MSwibmJmIjoxNzkyNjA0ODUxfQ.4tEvDxbEr5EnhBUgFotnu7_4MIfBOzd35UlRH4P2oY0
+Content-Type: application/json
+
+{
+  "barberId": 1,
+  "serviceId": 2,
+  "startUtc": "2026-10-26T08:00:00Z"
+}

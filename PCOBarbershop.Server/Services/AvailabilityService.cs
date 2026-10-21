@@ -9,6 +9,7 @@ namespace PCOBarbershop.Server.Services;
 public interface IAvailabilityService
 {
     Task<List<SlotDto>> GetFreeSlotsAsync(int barberId, int durationMinutes, DateOnly date);
+    Task<bool> IsSlotFreeAsync(int barberId, int durationMinutes, DateTime startUtc);
 }
 
 public class AvailabilityService : IAvailabilityService
@@ -88,6 +89,16 @@ public class AvailabilityService : IAvailabilityService
         }
 
         return slots;
+    }
+
+    // Reverifica, la momentul rezervarii, ca ora ceruta e inca un slot liber valid
+    // (in program, pe grila, in viitor, fara suprapuneri)
+    public async Task<bool> IsSlotFreeAsync(int barberId, int durationMinutes, DateTime startUtc)
+    {
+        var localDate = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(startUtc, SalonZone));
+        var slots = await GetFreeSlotsAsync(barberId, durationMinutes, localDate);
+
+        return slots.Any(s => s.StartUtc == startUtc);
     }
 
     // Ora locala a salonului -> UTC

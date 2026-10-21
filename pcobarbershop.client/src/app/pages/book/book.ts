@@ -5,10 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, catchError, forkJoin, of, switchMap, tap } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
 import { BarberItem, SlotItem } from '../../core/barber.models';
 import { BarberService } from '../../core/barber.service';
+import { AppointmentItem } from '../../core/booking.models';
+import { BookingService } from '../../core/booking.service';
 import { ServiceItem } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
 
@@ -29,8 +32,11 @@ const MAX_DAYS_AHEAD = 60;   // aceeasi valoare ca pe server
 export class Book implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly catalog = inject(CatalogService);
   private readonly barberService = inject(BarberService);
+  private readonly bookingService = inject(BookingService);
+  readonly auth = inject(AuthService);
 
   // Datele de baza (servicii si frizeri)
   readonly services = signal<ServiceItem[]>([]);
@@ -44,6 +50,11 @@ export class Book implements OnInit {
   readonly slotsLoaded = signal(false);
   readonly slotsError = signal<string | null>(null);
   readonly selectedSlot = signal<SlotItem | null>(null);
+
+  // Rezervarea
+  readonly booking = signal(false);
+  readonly bookingError = signal<string | null>(null);
+  readonly confirmed = signal<AppointmentItem | null>(null);
 
   // Limitele selectorului de data
   readonly minDate = this.toIsoDate(new Date());
@@ -117,11 +128,17 @@ export class Book implements OnInit {
         this.barbers.set(barbers);
         this.loading.set(false);
 
-        // Daca vii din pagina Servicii, serviciul ales e deja completat
-        const preselected = Number(this.route.snapshot.queryParamMap.get('serviceId'));
-        if (services.some((s) => s.id === preselected)) {
-          this.form.patchValue({ serviceId: preselected });
-        }
+        // Completam alegerile din adresa (vii din pagina Servicii sau dupa login)
+        const params = this.route.snapshot.queryParamMap;
+        const serviceId = Number(params.get('serviceId'));
+        const barberId = Number(params.get('barberId'));
+        const date = params.get('date');
+
+        this.form.patchValue({
+          serviceId: services.some((s) => s.id === serviceId) ? serviceId : null,
+          barberId: barbers.some((b) => b.id === barberId) ? barberId : null,
+          date: date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '',
+        });
       },
       error: () => {
         this.error.set('Nu am putut incarca datele. Incearca din nou.');
@@ -131,7 +148,64 @@ export class Book implements OnInit {
   }
 
   selectSlot(slot: SlotItem): void {
+    this.bookingError.set(null);
     this.selectedSlot.set(slot);
+  }
+
+  reserve(): void {
+    const slot = this.selectedSlot();
+    const { serviceId, barberId, date } = this.form.getRawValue();
+
+    if (!slot || !serviceId || !barberId) {
+      return;
+    }
+
+    // Rezervarea cere cont: te trimitem la login si te aducem inapoi cu alegerile completate
+    if (!this.auth.isAuthenticated()) {
+      const returnUrl = this.router
+        .createUrlTree(['/book'], { queryParams: { serviceId, barberId, date } })
+        .toString();
+      this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      return;
+    }
+
+    this.booking.set(true);
+    this.bookingError.set(null);
+
+    this.bookingService
+      .createAppointment({ barberId, serviceId, startUtc: slot.startUtc })
+      .subscribe({
+        next: (appointment) => {
+          this.booking.set(false);
+          this.confirmed.set(appointment);
+        },
+        error: (err) => {
+          this.booking.set(false);
+
+          if (err.status === 409) {
+            this.bookingError.set('Ora aleasa nu mai este disponibila. Alege alta ora.');
+            this.form.updateValueAndValidity();   // reincarca orele libere
+          } else if (err.status === 403) {
+            this.bookingError.set('Doar conturile de client pot face rezervari.');
+          } else {
+            this.bookingError.set('Nu am putut face rezervarea. Incearca din nou.');
+          }
+        },
+      });
+  }
+
+  newBooking(): void {
+    this.confirmed.set(null);
+    this.form.reset({ serviceId: null, barberId: null, date: '' });
+  }
+
+  statusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      PendingPayment: 'In asteptare plata',
+      Confirmed: 'Confirmata',
+      Cancelled: 'Anulata',
+    };
+    return labels[status] ?? status;
   }
 
   // Atentie: toISOString() ar da data in UTC si ar putea decala ziua. Folosim data locala.

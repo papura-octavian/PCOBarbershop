@@ -1,11 +1,27 @@
 <div class="book">
-  <h1>Rezerva o programare</h1>
+  @if (confirmed(); as c) {
+  <h1>Rezervare inregistrata</h1>
 
-  @if (loading()) {
+  @if (summary(); as s) {
+  <p>
+    <strong>{{ c.serviceName }}</strong> cu <strong>{{ c.barberName }}</strong>,
+    pe <strong>{{ s.date }}</strong>, la <strong>{{ s.time }}</strong>.
+  </p>
+  }
+  <p>Pret: <strong>{{ c.price }} RON</strong></p>
+  <p>Status: <strong>{{ statusLabel(c.status) }}</strong></p>
+  <p class="hint">
+    Plata online se adauga la taskul urmator. Pana atunci rezervarea ramane in asteptarea platii.
+  </p>
+
+  <button mat-flat-button type="button" (click)="newBooking()">Rezerva alta programare</button>
+  } @else if (loading()) {
   <p>Se incarca...</p>
   } @else if (error()) {
   <p class="form-error">{{ error() }}</p>
   } @else {
+  <h1>Rezerva o programare</h1>
+
   <form [formGroup]="form" class="filters">
     <mat-form-field appearance="outline">
       <mat-label>Serviciu</mat-label>
@@ -57,12 +73,25 @@
   </div>
   }
 
+  @if (bookingError()) {
+  <p class="form-error">{{ bookingError() }}</p>
+  }
+
   @if (summary(); as s) {
   <p class="summary">
     Ai ales <strong>{{ s.service.name }}</strong> cu <strong>{{ s.barber.displayName }}</strong>,
     pe <strong>{{ s.date }}</strong>, la <strong>{{ s.time }}</strong>.
-    Confirmarea rezervarii vine la taskul urmator.
   </p>
+
+  <button mat-flat-button type="button" [disabled]="booking()" (click)="reserve()">
+    {{
+          booking()
+            ? 'Se rezerva...'
+            : auth.isAuthenticated()
+              ? 'Confirma rezervarea'
+              : 'Autentifica-te ca sa rezervi'
+    }}
+  </button>
   }
   }
 </div>
