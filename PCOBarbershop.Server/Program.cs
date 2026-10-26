@@ -64,8 +64,11 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var sp = scope.ServiceProvider;
+    var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
+    var db = sp.GetRequiredService<AppDbContext>();
 
+    // 1. roluri
     foreach (var roleName in new[] { "Client", "Frizer" })
     {
         if (!await roleManager.RoleExistsAsync(roleName))
@@ -73,27 +76,14 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
-}
 
-using (var scope = app.Services.CreateScope())
-{
-    await DbSeeder.SeedBarbersAsync(scope.ServiceProvider, app.Configuration);
-}
+    // 2. frizeri (au nevoie de rolul Frizer)
+    await DbSeeder.SeedBarbersAsync(sp, app.Configuration);
 
-using (var scope = app.Services.CreateScope())
-{
-    await DbSeeder.SeedBarbersAsync(scope.ServiceProvider, app.Configuration);
-
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedServicesAsync(db);
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    await DbSeeder.SeedBarbersAsync(scope.ServiceProvider, app.Configuration);
+    // 3. programul de lucru (are nevoie de frizeri)
     await DbSeeder.SeedWorkingHoursAsync(db);
+
+    // 4. servicii
     await DbSeeder.SeedServicesAsync(db);
 }
 
