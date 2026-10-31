@@ -1,6 +1,8 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormArray, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { BarberAppointmentItem, WorkingHoursItem } from '../../core/barber.models';
 import { BarberService } from '../../core/barber.service';
 import { statusLabel } from '../../core/booking.models';
@@ -14,6 +16,9 @@ import {
 
 const DAY_NAMES = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
 
+// Ordinea zilelor in formular: luni primul, duminica ultima
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
 interface CalendarDay {
   key: string;            // "2026-10-26"
   label: string;          // "Luni"
@@ -24,17 +29,37 @@ interface CalendarDay {
 
 @Component({
   selector: 'app-barber-area',
-  imports: [DecimalPipe, MatButtonModule],
+  imports: [DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCheckboxModule],
   templateUrl: './barber-area.html',
   styleUrl: './barber-area.css',
 })
 export class BarberArea implements OnInit {
   private readonly barberService = inject(BarberService);
+  private readonly fb = inject(FormBuilder);
 
-  // Programul de lucru
-  readonly schedule = signal<WorkingHoursItem[]>([]);
+  // Programul de lucru, editabil: un rand pentru fiecare zi a saptamanii
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly saving = signal(false);
+  readonly saveError = signal<string | null>(null);
+  readonly saved = signal(false);
+
+  readonly scheduleForm = this.fb.nonNullable.group({
+    days: this.fb.array(
+      WEEK_ORDER.map((day) =>
+        this.fb.nonNullable.group({
+          dayOfWeek: day,
+          working: false,
+          start: '09:00',
+          end: '17:00',
+        })
+      )
+    ),
+  });
+
+  get dayRows(): FormArray {
+    return this.scheduleForm.controls.days;
+  }
 
   // Calendarul de rezervari (o saptamana, de luni pana duminica)
   readonly weekStart = signal(startOfWeek(new Date()));
@@ -75,7 +100,7 @@ export class BarberArea implements OnInit {
   ngOnInit(): void {
     this.barberService.getMySchedule().subscribe({
       next: (items) => {
-        this.schedule.set(items);
+        this.fillSchedule(items);
         this.loading.set(false);
       },
       error: () => {
@@ -121,12 +146,57 @@ export class BarberArea implements OnInit {
     });
   }
 
+  saveSchedule(): void {
+    const rows = this.scheduleForm.getRawValue().days;
+    const working = rows.filter((r) => r.working);
+
+    if (working.some((r) => !r.start || !r.end || r.start >= r.end)) {
+      this.saveError.set('La fiecare zi lucratoare, ora de inceput trebuie sa fie inaintea orei de sfarsit.');
+      return;
+    }
+
+    this.saving.set(true);
+    this.saveError.set(null);
+    this.saved.set(false);
+
+    const items: WorkingHoursItem[] = working.map((r) => ({
+      dayOfWeek: r.dayOfWeek,
+      startTime: `${r.start}:00`,
+      endTime: `${r.end}:00`,
+    }));
+
+    this.barberService.updateMySchedule(items).subscribe({
+      next: (result) => {
+        this.fillSchedule(result);
+        this.saving.set(false);
+        this.saved.set(true);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.saveError.set(err?.error?.message ?? 'Nu am putut salva programul. Incearca din nou.');
+      },
+    });
+  }
+
   dayName(day: number): string {
     return DAY_NAMES[day];
   }
 
+  // Pune programul primit de la server in formular
+  private fillSchedule(items: WorkingHoursItem[]): void {
+    for (const row of this.dayRows.controls) {
+      const item = items.find((i) => i.dayOfWeek === row.value.dayOfWeek);
+      row.patchValue(
+        item
+          ? { working: true, start: this.time(item.startTime), end: this.time(item.endTime) }
+          : { working: false }
+      );
+    }
+    this.scheduleForm.markAsPristine();
+  }
+
   // "09:00:00" => "09:00"
-  time(value: string): string {
+  private time(value: string): string {
     return value.slice(0, 5);
   }
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using PCOBarbershop.Server.Data;
 using PCOBarbershop.Server.Dtos;
+using PCOBarbershop.Server.Models;
 using PCOBarbershop.Server.Services;
 
 namespace PCOBarbershop.Server.Controllers;
@@ -85,6 +86,52 @@ public class BarbersController : ControllerBase
             .ToListAsync();
 
         return Ok(schedule);
+    }
+
+    // PUT /api/barbers/me/schedule - frizerul isi inlocuieste programul saptamanal.
+    // Zilele care lipsesc din lista sunt zile libere.
+    [Authorize(Roles = "Frizer")]
+    [HttpPut("me/schedule")]
+    public async Task<ActionResult<List<WorkingHoursDto>>> UpdateMySchedule(List<WorkingHoursDto> items)
+    {
+        if (items.Select(i => i.DayOfWeek).Distinct().Count() != items.Count)
+        {
+            return BadRequest(new { message = "Fiecare zi poate aparea o singura data." });
+        }
+
+        if (items.Any(i => !Enum.IsDefined(i.DayOfWeek)))
+        {
+            return BadRequest(new { message = "Zi a saptamanii invalida." });
+        }
+
+        if (items.Any(i => i.StartTime >= i.EndTime))
+        {
+            return BadRequest(new { message = "Ora de inceput trebuie sa fie inaintea orei de sfarsit." });
+        }
+
+        var barberId = await GetCurrentBarberIdAsync();
+        if (barberId is null)
+        {
+            return NotFound(new { message = "Nu exista profil de frizer pentru acest cont." });
+        }
+
+        // Stergem programul vechi si il salvam pe cel nou, intr-o singura tranzactie
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        await _db.WorkingHours.Where(w => w.BarberId == barberId).ExecuteDeleteAsync();
+
+        _db.WorkingHours.AddRange(items.Select(i => new WorkingHours
+        {
+            BarberId = barberId.Value,
+            DayOfWeek = i.DayOfWeek,
+            StartTime = i.StartTime,
+            EndTime = i.EndTime
+        }));
+
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return await GetMySchedule();
     }
 
     // GET /api/barbers/me/appointments?from=2026-10-26&to=2026-11-01

@@ -51,27 +51,49 @@
     <p>Se incarca programul...</p>
     } @else if (error()) {
     <p class="form-error">{{ error() }}</p>
-    } @else if (schedule().length === 0) {
-    <p>Nu ai niciun interval de lucru setat.</p>
     } @else {
-    <table class="schedule">
-      <thead>
-        <tr>
-          <th>Ziua</th>
-          <th>De la</th>
-          <th>Pana la</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of schedule(); track item.dayOfWeek) {
-        <tr>
-          <td>{{ dayName(item.dayOfWeek) }}</td>
-          <td>{{ time(item.startTime) }}</td>
-          <td>{{ time(item.endTime) }}</td>
-        </tr>
-        }
-      </tbody>
-    </table>
+    <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()">
+      <table class="schedule" formArrayName="days">
+        <thead>
+          <tr>
+            <th>Ziua</th>
+            <th>Lucrez</th>
+            <th>De la</th>
+            <th>Pana la</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of dayRows.controls; track row.value.dayOfWeek; let i = $index) {
+          <tr [formGroupName]="i" [class.off]="!row.value.working">
+            <td>{{ dayName(row.value.dayOfWeek) }}</td>
+            <td><mat-checkbox formControlName="working" /></td>
+            @if (row.value.working) {
+            <td><input class="time-input" type="time" step="1200" formControlName="start" /></td>
+            <td><input class="time-input" type="time" step="1200" formControlName="end" /></td>
+            } @else {
+            <td colspan="2" class="off-label">Zi libera</td>
+            }
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (saveError()) {
+      <p class="form-error">{{ saveError() }}</p>
+      }
+      @if (saved() && scheduleForm.pristine) {
+      <p class="saved">Programul a fost salvat.</p>
+      }
+
+      <div class="schedule-actions">
+        <button mat-flat-button type="submit" [disabled]="saving() || scheduleForm.pristine">
+          {{ saving() ? 'Se salveaza...' : 'Salveaza programul' }}
+        </button>
+      </div>
+      <p class="note">
+        Programarile deja facute raman valabile. Clientii vor vedea orele libere dupa noul program.
+      </p>
+    </form>
     }
   </section>
 </div>

@@ -22,6 +22,11 @@ export class BarberService {
     return this.http.get<WorkingHoursItem[]>('/api/barbers/me/schedule');
   }
 
+  // Inlocuieste tot programul saptamanal; zilele lipsa devin zile libere
+  updateMySchedule(items: WorkingHoursItem[]): Observable<WorkingHoursItem[]> {
+    return this.http.put<WorkingHoursItem[]>('/api/barbers/me/schedule', items);
+  }
+
   // from / to = "yyyy-MM-dd", ambele incluse
   getMyAppointments(from: string, to: string): Observable<BarberAppointmentItem[]> {
     const params = new HttpParams().set('from', from).set('to', to);
