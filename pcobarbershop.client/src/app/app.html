@@ -1,25 +1,141 @@
-<mat-toolbar>
-  <a routerLink="/" class="brand">{{ title() }}</a>
-  <span class="spacer"></span>
+<header class="site-header">
+  <div class="header-inner">
+    <a routerLink="/" class="brand" aria-label="PCO Barbershop, pagina principala">
+      <span class="brand-mark"><span class="material-symbols-outlined">content_cut</span></span>
+      <span class="brand-name">{{ title() }}</span>
+    </a>
 
-  <a mat-button routerLink="/services">Servicii</a>
-  <a mat-button routerLink="/book">Rezerva</a>
+    <!-- Navigatia principala (ecrane mari) -->
+    <nav class="main-nav" aria-label="Navigatie principala">
+      <a routerLink="/services" routerLinkActive="active">Servicii</a>
+      @if (auth.hasRole('Client')) {
+      <a routerLink="/my-appointments" routerLinkActive="active">Programarile mele</a>
+      }
+      @if (auth.hasRole('Frizer')) {
+      <a routerLink="/barber" routerLinkActive="active">Zona frizerului</a>
+      }
+    </nav>
 
-  @if (auth.currentUser(); as user) {
-  @if (auth.hasRole('Client')) {
-  <a mat-button routerLink="/my-appointments">Programarile mele</a>
-  }
-  @if (auth.hasRole('Frizer')) {
-  <a mat-button routerLink="/barber">Zona frizerului</a>
-  }
-  <a mat-button routerLink="/account" class="user-email" title="Securitatea contului">{{ user.email }}</a>
-  <button mat-button type="button" (click)="logout()">Deconectare</button>
-  } @else {
-  <a mat-button routerLink="/login">Autentificare</a>
-  <a mat-button routerLink="/register">Creeaza cont</a>
-  }
-</mat-toolbar>
+    <div class="header-actions">
+      @if (!auth.hasRole('Frizer')) {
+      <a mat-flat-button routerLink="/book" class="book-button">
+        <span class="material-symbols-outlined">calendar_add_on</span>
+        Rezerva
+      </a>
+      }
+
+      @if (auth.currentUser(); as user) {
+      <button type="button" class="account-button" [matMenuTriggerFor]="accountMenu" aria-label="Contul meu">
+        <span class="avatar">{{ user.email.charAt(0).toUpperCase() }}</span>
+        <span class="account-email">{{ user.email }}</span>
+        <span class="material-symbols-outlined">expand_more</span>
+      </button>
+      <mat-menu #accountMenu="matMenu" xPosition="before">
+        <div class="menu-header">
+          <span class="menu-label">Autentificat ca</span>
+          <strong>{{ user.email }}</strong>
+        </div>
+        @if (auth.hasRole('Client')) {
+        <a mat-menu-item routerLink="/my-appointments">
+          <span class="material-symbols-outlined">event_note</span> Programarile mele
+        </a>
+        }
+        @if (auth.hasRole('Frizer')) {
+        <a mat-menu-item routerLink="/barber">
+          <span class="material-symbols-outlined">calendar_month</span> Zona frizerului
+        </a>
+        }
+        <a mat-menu-item routerLink="/account">
+          <span class="material-symbols-outlined">shield_lock</span> Securitate (2FA)
+        </a>
+        <button mat-menu-item type="button" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span> Deconectare
+        </button>
+      </mat-menu>
+      } @else {
+      <a routerLink="/login" class="login-link">Autentificare</a>
+      }
+
+      <!-- Meniul pentru telefon -->
+      <button type="button" class="menu-toggle" [matMenuTriggerFor]="mobileMenu" aria-label="Deschide meniul">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <mat-menu #mobileMenu="matMenu" xPosition="before">
+        <a mat-menu-item routerLink="/services">
+          <span class="material-symbols-outlined">content_cut</span> Servicii
+        </a>
+        @if (!auth.hasRole('Frizer')) {
+        <a mat-menu-item routerLink="/book">
+          <span class="material-symbols-outlined">calendar_add_on</span> Rezerva
+        </a>
+        }
+        @if (auth.isAuthenticated()) {
+        @if (auth.hasRole('Client')) {
+        <a mat-menu-item routerLink="/my-appointments">
+          <span class="material-symbols-outlined">event_note</span> Programarile mele
+        </a>
+        }
+        @if (auth.hasRole('Frizer')) {
+        <a mat-menu-item routerLink="/barber">
+          <span class="material-symbols-outlined">calendar_month</span> Zona frizerului
+        </a>
+        }
+        <a mat-menu-item routerLink="/account">
+          <span class="material-symbols-outlined">shield_lock</span> Securitate (2FA)
+        </a>
+        <button mat-menu-item type="button" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span> Deconectare
+        </button>
+        } @else {
+        <a mat-menu-item routerLink="/login">
+          <span class="material-symbols-outlined">login</span> Autentificare
+        </a>
+        <a mat-menu-item routerLink="/register">
+          <span class="material-symbols-outlined">person_add</span> Creeaza cont
+        </a>
+        }
+      </mat-menu>
+    </div>
+  </div>
+</header>
 
 <main>
   <router-outlet />
 </main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a routerLink="/" class="brand">
+        <span class="brand-mark"><span class="material-symbols-outlined">content_cut</span></span>
+        <span class="brand-name">{{ title() }}</span>
+      </a>
+      <p>Tunsori clasice si moderne, aranjat de barba. Rezervi online in cateva secunde si platesti securizat cu cardul.</p>
+    </div>
+
+    <div>
+      <h4>Program</h4>
+      <ul class="hours">
+        <li><span>Luni - Vineri</span><span>09:00 - 17:00</span></li>
+        <li><span>Sambata - Duminica</span><span>Inchis</span></li>
+      </ul>
+      <p class="footer-note">Orele libere exacte ale fiecarui frizer le vezi la rezervare.</p>
+    </div>
+
+    <div>
+      <h4>Link-uri</h4>
+      <ul class="links">
+        <li><a routerLink="/services">Servicii si preturi</a></li>
+        <li><a routerLink="/book">Rezerva o programare</a></li>
+        @if (!auth.isAuthenticated()) {
+        <li><a routerLink="/register">Creeaza cont</a></li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>&copy; {{ year }} PCO Barbershop</span>
+    <span class="secure"><span class="material-symbols-outlined">lock</span> Plati securizate prin Stripe</span>
+  </div>
+</footer>

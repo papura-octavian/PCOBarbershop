@@ -10,6 +10,7 @@ import { AuthService } from './core/auth.service';
 })
 export class App {
   protected readonly title = signal('PCO Barbershop');
+  protected readonly year = new Date().getFullYear();
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
