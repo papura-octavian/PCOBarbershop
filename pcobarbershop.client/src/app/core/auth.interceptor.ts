@@ -9,8 +9,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // La login si register nu atasam tokenul (si nu tratam 401 ca "sesiune expirata")
-  const isAuthEndpoint = req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register');
+  // Rutele publice de autentificare (login, register, confirmare...) nu primesc tokenul
+  // si un 401 de la ele nu inseamna "sesiune expirata". Exceptie: /api/auth/me.
+  const isAuthEndpoint = req.url.includes('/api/auth/') && !req.url.includes('/api/auth/me');
   const token = auth.token;
 
   // 1. Atasam tokenul in header: Authorization: Bearer <token>

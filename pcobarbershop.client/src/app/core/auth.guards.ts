@@ -2,6 +2,11 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
+// Acceptam doar adrese interne (care incep cu un singur "/"), ca sa nu putem fi redirectati pe alt site
+export function safeReturnUrl(returnUrl: string | null): string {
+  return returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/';
+}
+
 // Pagini pentru utilizatori logati
 export const authGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);

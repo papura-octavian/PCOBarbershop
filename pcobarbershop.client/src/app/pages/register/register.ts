@@ -11,7 +11,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
-import { switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 
 // Verifica la nivel de formular ca cele doua parole sunt identice
@@ -73,17 +72,14 @@ export class Register {
 
     const { confirmPassword, ...request } = this.form.getRawValue();
 
-    // Creeaza contul, apoi te autentifica automat
-    this.auth
-      .register(request)
-      .pipe(switchMap(() => this.auth.login({ email: request.email, password: request.password })))
-      .subscribe({
-        next: () => this.router.navigateByUrl('/'),
-        error: (err) => {
-          this.loading.set(false);
-          this.errors.set(this.extractErrors(err));
-        },
-      });
+    // Creeaza contul, apoi te trimite sa introduci codul primit pe e-mail
+    this.auth.register(request).subscribe({
+      next: () => this.router.navigate(['/confirm-email'], { queryParams: { email: request.email } }),
+      error: (err) => {
+        this.loading.set(false);
+        this.errors.set(this.extractErrors(err));
+      },
+    });
   }
 
   // Serverul poate trimite erorile in doua forme: o lista (de la Identity)

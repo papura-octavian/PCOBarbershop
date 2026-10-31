@@ -1,0 +1,55 @@
+<div class="auth-container">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title>Confirma adresa de e-mail</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (!email) {
+      <p class="form-error">Lipseste adresa de e-mail. Autentifica-te din nou ca sa primesti un cod.</p>
+      } @else {
+      <p>
+        Am trimis un cod de 6 cifre la <strong>{{ email }}</strong>. Introdu-l mai jos ca sa iti activezi
+        contul.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Cod de confirmare</mat-label>
+          <input matInput
+                 formControlName="code"
+                 inputmode="numeric"
+                 autocomplete="one-time-code"
+                 maxlength="6"
+                 class="code-input" />
+          @if (form.controls.code.hasError('required')) {
+          <mat-error>Codul este obligatoriu.</mat-error>
+          } @else if (form.controls.code.hasError('pattern')) {
+          <mat-error>Codul are exact 6 cifre.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+        }
+        @if (info()) {
+        <p class="info">{{ info() }}</p>
+        }
+
+        <button mat-flat-button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Se verifica...' : 'Confirma contul' }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
+
+    <mat-card-actions>
+      @if (email) {
+      <button mat-button type="button" [disabled]="cooldown() > 0" (click)="resend()">
+        {{ cooldown() > 0 ? 'Retrimite codul (' + cooldown() + 's)' : 'Retrimite codul' }}
+      </button>
+      }
+      <a mat-button routerLink="/login">Inapoi la autentificare</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

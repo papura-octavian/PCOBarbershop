@@ -7,12 +7,14 @@ import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { Services } from './pages/services/services';
 import { Book } from './pages/book/book';
+import { ConfirmEmail } from './pages/confirm-email/confirm-email';
 import { MyAppointments } from './pages/my-appointments/my-appointments';
 
 const routes: Routes = [
   { path: '', component: Home, pathMatch: 'full' },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
+  { path: 'confirm-email', component: ConfirmEmail, canActivate: [guestGuard] },
   { path: 'barber', component: BarberArea, canActivate: [roleGuard('Frizer')] },
   { path: 'services', component: Services },
   { path: 'book', component: Book },

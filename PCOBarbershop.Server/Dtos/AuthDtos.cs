@@ -26,4 +26,19 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class ConfirmEmailRequest
+{
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, StringLength(10)]
+    public string Code { get; set; } = string.Empty;
+}
+
+public class ResendConfirmationRequest
+{
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
+
 public record AuthResponse(string Token, DateTime ExpiresAtUtc, string Email, IList<string> Roles);

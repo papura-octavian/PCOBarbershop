@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { safeReturnUrl } from '../../core/auth.guards';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -46,15 +47,25 @@ export class Login {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        // Acceptam doar adrese interne (care incep cu un singur "/")
-        const safeUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/';
-        this.router.navigateByUrl(safeUrl);
+        this.router.navigateByUrl(safeReturnUrl(returnUrl));
       },
       error: (err) => {
         this.loading.set(false);
+
+        // Contul exista dar e-mailul nu e confirmat: mergem la pagina cu codul
+        if (err.status === 403 && err.error?.requiresEmailConfirmation) {
+          this.router.navigate(['/confirm-email'], {
+            queryParams: {
+              email: err.error.email,
+              returnUrl: this.route.snapshot.queryParamMap.get('returnUrl'),
+            },
+          });
+          return;
+        }
+
         this.errorMessage.set(
           err.status === 401
-            ? 'E-mail sau parola incorecte.'
+            ? (err.error?.message ?? 'E-mail sau parola incorecte.')
             : 'A aparut o eroare. Incearca din nou.'
         );
       },

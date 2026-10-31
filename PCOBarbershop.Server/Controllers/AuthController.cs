@@ -15,11 +15,19 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(UserManager<ApplicationUser> userManager, ITokenService tokenService)
+    public AuthController(
+        UserManager<ApplicationUser> userManager,
+        ITokenService tokenService,
+        IEmailService emailService,
+        ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     [HttpPost("register")]
@@ -41,7 +49,10 @@ public class AuthController : ControllerBase
 
         await _userManager.AddToRoleAsync(user, "Client");
 
-        return Ok(new { message = "Cont creat cu succes." });
+        // Contul nu poate fi folosit pana nu e confirmat cu codul primit pe e-mail
+        await SendConfirmationCodeAsync(user);
+
+        return Ok(new { message = "Cont creat. Ti-am trimis pe e-mail un cod de confirmare.", email = user.Email });
     }
 
     [HttpPost("login")]
@@ -51,15 +62,82 @@ public class AuthController : ControllerBase
 
         // Acelasi mesaj pentru e-mail inexistent si parola gresita,
         // ca sa nu poata nimeni afla ce e-mailuri au cont.
-        if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
+        if (user is null)
         {
             return Unauthorized(new { message = "E-mail sau parola incorecte." });
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
-        var token = _tokenService.CreateToken(user, roles);
+        // Dupa 5 incercari gresite contul se blocheaza cateva minute (protectie la ghicirea parolei)
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Unauthorized(new { message = "Prea multe incercari gresite. Incearca din nou peste cateva minute." });
+        }
 
-        return Ok(new AuthResponse(token.Token, token.ExpiresAtUtc, user.Email!, roles));
+        if (!await _userManager.CheckPasswordAsync(user, request.Password))
+        {
+            await _userManager.AccessFailedAsync(user);
+            return Unauthorized(new { message = "E-mail sau parola incorecte." });
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+
+        if (!user.EmailConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = "Confirma mai intai adresa de e-mail cu codul primit.",
+                requiresEmailConfirmation = true,
+                email = user.Email
+            });
+        }
+
+        return Ok(await CreateAuthResponseAsync(user));
+    }
+
+    // POST /api/auth/confirm-email - confirma contul cu codul de 6 cifre si autentifica utilizatorul
+    [HttpPost("confirm-email")]
+    public async Task<ActionResult<AuthResponse>> ConfirmEmail(ConfirmEmailRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is null)
+        {
+            return BadRequest(new { message = "Cod invalid sau expirat." });
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return BadRequest(new { message = "Contul este deja confirmat. Te poti autentifica." });
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return BadRequest(new { message = "Prea multe incercari gresite. Incearca din nou peste cateva minute." });
+        }
+
+        var result = await _userManager.ConfirmEmailAsync(user, request.Code.Trim());
+        if (!result.Succeeded)
+        {
+            await _userManager.AccessFailedAsync(user);
+            return BadRequest(new { message = "Cod invalid sau expirat." });
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+
+        return Ok(await CreateAuthResponseAsync(user));
+    }
+
+    // POST /api/auth/resend-confirmation - trimite un cod nou.
+    // Raspunsul e mereu acelasi, ca sa nu se poata afla ce e-mailuri au cont.
+    [HttpPost("resend-confirmation")]
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user is not null && !user.EmailConfirmed)
+        {
+            await SendConfirmationCodeAsync(user);
+        }
+
+        return Ok(new { message = "Daca exista un cont neconfirmat cu acest e-mail, am trimis un cod nou." });
     }
 
     [Authorize]
@@ -72,5 +150,33 @@ public class AuthController : ControllerBase
             email = User.FindFirstValue(JwtRegisteredClaimNames.Email),
             roles = User.FindAll("role").Select(c => c.Value)
         });
+    }
+
+    private async Task<AuthResponse> CreateAuthResponseAsync(ApplicationUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = _tokenService.CreateToken(user, roles);
+
+        return new AuthResponse(token.Token, token.ExpiresAtUtc, user.Email!, roles);
+    }
+
+    private async Task SendConfirmationCodeAsync(ApplicationUser user)
+    {
+        // Cod de 6 cifre generat de Identity (TOTP pe baza security stamp-ului), valabil cateva minute
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        try
+        {
+            await _emailService.SendAsync(
+                user.Email!,
+                $"{user.FirstName} {user.LastName}",
+                "Codul tau de confirmare PCO Barbershop",
+                EmailTemplates.ConfirmationCode(user.FirstName, code));
+        }
+        catch (Exception ex)
+        {
+            // Contul ramane creat; utilizatorul poate cere un cod nou
+            _logger.LogError(ex, "Nu s-a putut trimite codul de confirmare catre {Email}", user.Email);
+        }
     }
 }

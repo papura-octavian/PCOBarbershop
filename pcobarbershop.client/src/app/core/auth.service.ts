@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, CurrentUser, LoginRequest, RegisterRequest } from './auth.models';
+import {
+  AuthResponse,
+  ConfirmEmailRequest,
+  CurrentUser,
+  LoginRequest,
+  RegisterRequest,
+} from './auth.models';
 
 const TOKEN_KEY = 'pcobarbershop_token';
 
@@ -28,6 +34,17 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/login`, request)
       .pipe(tap((response) => this.saveToken(response.token)));
+  }
+
+  // Confirma contul cu codul primit pe e-mail; serverul raspunde direct cu tokenul
+  confirmEmail(request: ConfirmEmailRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/confirm-email`, request)
+      .pipe(tap((response) => this.saveToken(response.token)));
+  }
+
+  resendConfirmation(email: string): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/resend-confirmation`, { email });
   }
 
   logout(): void {
