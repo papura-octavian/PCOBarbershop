@@ -38,6 +38,9 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSett
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection(SmtpSettings.SectionName));
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("Sectiunea Jwt lipseste din configuratie.");
 
