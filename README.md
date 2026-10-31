@@ -109,13 +109,62 @@ npm install @stripe/stripe-js
 6. Deschide solutia in Visual Studio si apasa F5
    (accepta certificatul HTTPS de dezvoltare daca apare)
 
+Swagger UI (documentatia si testarea API-ului) este la `https://localhost:7077/swagger`.
+Pentru rutele protejate: login din `/api/auth/login`, apoi butonul **Authorize** cu tokenul primit.
+
+## Functionalitati
+
+**Clienti**
+- cont cu e-mail + parola, confirmat cu un cod OTP de 6 cifre trimis pe e-mail
+- autentificare cu contul Google (Google Sign-In)
+- autentificare in doi pasi (2FA / TOTP) cu Google Authenticator, cu coduri de recuperare (pagina Securitate)
+- blocare temporara a contului dupa 5 incercari gresite
+- alegerea serviciului, a frizerului si a unei ore libere, plata cu cardul prin Stripe Checkout
+- pagina "Programarile mele"; ora ramane rezervata 30 de minute, iar daca nu se plateste se elibereaza automat
+
+**Frizeri**
+- calendarul saptamanal al rezervarilor
+- editarea programului de lucru pe zile
+- anularea unei programari: clientul primeste e-mail, iar daca programarea era platita banii se returneaza automat
+
 ## Secrete
 
 Nu se pun in repository. Se salveaza local cu User Secrets
-(click dreapta pe proiectul Server > Manage User Secrets):
+(click dreapta pe proiectul Server > Manage User Secrets).
+Setarile fara secrete (port SMTP, expeditor, moneda etc.) sunt in `appsettings.json`.
 
-- ConnectionStrings:DefaultConnection
-- Jwt:Key
-- Google:ClientId / Google:ClientSecret
-- Stripe:SecretKey
-- Smtp:Password
+```json
+{
+  "ConnectionStrings": { "DefaultConnection": "Host=localhost;Port=5432;Database=pcobarbershop;Username=...;Password=..." },
+  "Jwt": { "Key": "...minim 32 de caractere...", "Issuer": "PCOBarbershop", "Audience": "PCOBarbershopClient", "ExpiresInMinutes": 60 },
+  "Smtp": { "Host": "sandbox.smtp.mailtrap.io", "Port": 587, "Username": "...", "Password": "..." },
+  "Stripe": { "SecretKey": "sk_test_...", "WebhookSecret": "whsec_..." },
+  "Google": { "ClientId": "....apps.googleusercontent.com" }
+}
+```
+
+Fara `Smtp:Host`, e-mailurile (inclusiv codurile de confirmare) nu se trimit, ci apar in consola serverului.
+Fara `Stripe:SecretKey` plata nu porneste, iar fara `Google:ClientId` butonul Google nu apare.
+
+## Configurarea serviciilor externe
+
+**Stripe (test mode)**
+1. Cont pe https://dashboard.stripe.com, cu **Test mode** activ
+2. Developers > API keys: copiaza **Secret key** (`sk_test_...`) in `Stripe:SecretKey`
+3. Webhook local cu Stripe CLI (optional; fara el plata se confirma oricum la intoarcerea pe site):
+   ```
+   stripe login
+   stripe listen --forward-to https://localhost:7077/api/payments/webhook --skip-verify
+   ```
+   Copiaza `whsec_...` afisat in `Stripe:WebhookSecret`
+4. Card de test: `4242 4242 4242 4242`, orice data viitoare, orice CVC
+
+**Google Sign-In**
+1. https://console.cloud.google.com > APIs & Services > OAuth consent screen (External, adauga-te la Test users)
+2. Credentials > Create credentials > OAuth client ID > **Web application**
+3. Authorized JavaScript origins: `https://localhost:49297` si `http://localhost:49297`
+4. Copiaza Client ID in `Google:ClientId`
+
+**SMTP (Mailtrap)**
+1. Cont pe https://mailtrap.io > Email Testing > Inbox > SMTP Settings
+2. Copiaza Host, Port, Username, Password in sectiunea `Smtp`
