@@ -1,1 +1,319 @@
-/* You can add global styles to this file, and also import other style files */
+/* Stiluri globale: culorile frizeriei, tipografia si clasele refolosite de toate paginile */
+
+:root {
+  --pco-ink: #1c1814;          /* antracit: header, footer, hero */
+  --pco-ink-soft: #2a241e;
+  --pco-gold: #a8742f;         /* auriu: butoane, accente */
+  --pco-gold-light: #d4a960;
+  --pco-cream: #faf7f2;        /* fundalul paginii */
+  --pco-card: #ffffff;
+  --pco-border: #e7dfd3;
+  --pco-muted: #6b6158;
+  --pco-success: #2e7d32;
+  --pco-success-bg: #e3f4e5;
+  --pco-warning: #8a5a00;
+  --pco-warning-bg: #fdf0d5;
+  --pco-danger: #b3261e;
+  --pco-danger-bg: #fde4e1;
+  --pco-radius: 16px;
+  --pco-shadow: 0 1px 2px rgba(28, 24, 20, 0.04), 0 8px 24px rgba(28, 24, 20, 0.06);
+  --pco-display: 'Playfair Display', Georgia, serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--pco-display);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  color: var(--pco-ink);
+}
+
+h1 {
+  font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+a {
+  color: var(--pco-gold);
+}
+
+/* Iconite Material Symbols: <span class="material-symbols-outlined">content_cut</span> */
+.material-symbols-outlined {
+  font-size: 22px;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* ---------- Layout ---------- */
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.page.narrow {
+  max-width: 760px;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header p {
+  color: var(--pco-muted);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pco-gold);
+  margin-bottom: 0.5rem;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.section-title h2 {
+  margin: 0;
+}
+
+/* ---------- Carduri ---------- */
+
+.card {
+  background: var(--pco-card);
+  border: 1px solid var(--pco-border);
+  border-radius: var(--pco-radius);
+  box-shadow: var(--pco-shadow);
+  padding: 1.5rem;
+}
+
+.card.flat {
+  box-shadow: none;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ---------- Etichete de status ---------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--mat-sys-surface-container);
+  color: var(--pco-muted);
+}
+
+.badge[data-status='Confirmed'] {
+  background: var(--pco-success-bg);
+  color: var(--pco-success);
+}
+
+.badge[data-status='PendingPayment'] {
+  background: var(--pco-warning-bg);
+  color: var(--pco-warning);
+}
+
+.badge[data-status='Cancelled'] {
+  background: var(--pco-danger-bg);
+  color: var(--pco-danger);
+}
+
+/* ---------- Mesaje ---------- */
+
+.muted {
+  color: var(--pco-muted);
+}
+
+.form-error {
+  color: var(--pco-danger);
+  margin: 0 0 0.5rem;
+}
+
+.form-success {
+  color: var(--pco-success);
+  margin: 0 0 0.5rem;
+}
+
+.alert {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  margin: 0 0 1rem;
+}
+
+.alert.error {
+  background: var(--pco-danger-bg);
+  color: var(--pco-danger);
+}
+
+.alert.info {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.alert.success {
+  background: var(--pco-success-bg);
+  color: var(--pco-success);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--pco-muted);
+}
+
+.empty-state .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--pco-gold-light);
+  margin-bottom: 0.75rem;
+}
+
+/* Indicator de incarcare simplu */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--pco-muted);
+  padding: 1rem 0;
+}
+
+.loading::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--pco-border);
+  border-top-color: var(--pco-gold);
+  animation: pco-spin 0.8s linear infinite;
+}
+
+@keyframes pco-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Pagini de autentificare ---------- */
+
+.auth-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(168, 116, 47, 0.12), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(168, 116, 47, 0.1), transparent 45%),
+    var(--pco-cream);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--pco-card);
+  border: 1px solid var(--pco-border);
+  border-radius: 20px;
+  box-shadow: var(--pco-shadow);
+  padding: 2.25rem 2rem 1.75rem;
+}
+
+.auth-card .auth-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pco-ink);
+  color: var(--pco-gold-light);
+  margin-bottom: 1.25rem;
+}
+
+.auth-card h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.auth-card .subtitle {
+  color: var(--pco-muted);
+  margin: 0 0 1.5rem;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.auth-card .submit {
+  height: 48px;
+  margin-top: 0.5rem;
+}
+
+.auth-card .switch {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--pco-border);
+  text-align: center;
+  color: var(--pco-muted);
+}
+
+.auth-card .switch a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Campurile Material ocupa toata latimea in formulare */
+.full-width {
+  width: 100%;
+}
