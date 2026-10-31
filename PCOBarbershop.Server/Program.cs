@@ -52,6 +52,9 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection(Stri
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddHostedService<UnpaidAppointmentsCleanupService>();
 
+builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection(GoogleSettings.SectionName));
+builder.Services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
+
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("Sectiunea Jwt lipseste din configuratie.");
 

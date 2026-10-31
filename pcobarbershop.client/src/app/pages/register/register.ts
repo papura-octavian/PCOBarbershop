@@ -11,7 +11,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
+import { AuthResponse, TwoFactorRequiredResponse } from '../../core/auth.models';
 import { AuthService } from '../../core/auth.service';
+import { GoogleSignIn } from '../../core/google-sign-in';
 
 // Verifica la nivel de formular ca cele doua parole sunt identice
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
@@ -29,6 +31,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    GoogleSignIn,
   ],
   templateUrl: './register.html',
   styleUrl: './register.css',
@@ -80,6 +83,15 @@ export class Register {
         this.errors.set(this.extractErrors(err));
       },
     });
+  }
+
+  // Cont creat / gasit prin Google: e deja confirmat, deci intram direct
+  onGoogleSignedIn(response: AuthResponse | TwoFactorRequiredResponse): void {
+    if ('requiresTwoFactor' in response) {
+      this.router.navigate(['/login'], { state: { twoFactorToken: response.twoFactorToken } });
+      return;
+    }
+    this.router.navigateByUrl('/');
   }
 
   // Serverul poate trimite erorile in doua forme: o lista (de la Identity)

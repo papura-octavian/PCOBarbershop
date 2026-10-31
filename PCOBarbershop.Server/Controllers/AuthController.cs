@@ -15,18 +15,23 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
+    private const string GoogleProvider = "Google";
+
     private readonly IEmailService _emailService;
+    private readonly IGoogleTokenValidator _google;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
         IEmailService emailService,
+        IGoogleTokenValidator google,
         ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _emailService = emailService;
+        _google = google;
         _logger = logger;
     }
 
@@ -135,6 +140,87 @@ public class AuthController : ControllerBase
         }
 
         await _userManager.ResetAccessFailedCountAsync(user);
+
+        return Ok(await CreateAuthResponseAsync(user));
+    }
+
+    // GET /api/auth/google/config - Angular afla de aici daca si cu ce Client ID afiseaza butonul Google
+    [HttpGet("google/config")]
+    public ActionResult<GoogleConfigDto> GoogleConfig()
+    {
+        return Ok(new GoogleConfigDto(_google.IsConfigured, _google.ClientId));
+    }
+
+    // POST /api/auth/google - autentificare cu contul Google (OAuth 2.0 / OpenID Connect).
+    // La prima autentificare se creeaza automat un cont de client, deja confirmat.
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin(GoogleLoginRequest request)
+    {
+        if (!_google.IsConfigured)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { message = "Autentificarea cu Google nu este configurata pe server." });
+        }
+
+        var googleUser = await _google.ValidateAsync(request.IdToken);
+        if (googleUser is null)
+        {
+            return Unauthorized(new { message = "Autentificarea cu Google a esuat." });
+        }
+
+        if (!googleUser.EmailVerified)
+        {
+            return Unauthorized(new { message = "Adresa de e-mail a contului Google nu este verificata." });
+        }
+
+        // 1. Contul deja legat de acest cont Google
+        var user = await _userManager.FindByLoginAsync(GoogleProvider, googleUser.Subject);
+
+        if (user is null)
+        {
+            // 2. Un cont existent cu acelasi e-mail (Google a verificat e-mailul, deci il putem lega)
+            user = await _userManager.FindByEmailAsync(googleUser.Email);
+
+            if (user is null)
+            {
+                // 3. Cont nou de client, fara parola
+                user = new ApplicationUser
+                {
+                    UserName = googleUser.Email,
+                    Email = googleUser.Email,
+                    EmailConfirmed = true,
+                    FirstName = googleUser.FirstName,
+                    LastName = googleUser.LastName
+                };
+
+                var created = await _userManager.CreateAsync(user);
+                if (!created.Succeeded)
+                {
+                    return BadRequest(new { errors = created.Errors.Select(e => e.Description) });
+                }
+
+                await _userManager.AddToRoleAsync(user, "Client");
+            }
+
+            await _userManager.AddLoginAsync(user, new UserLoginInfo(GoogleProvider, googleUser.Subject, "Google"));
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Unauthorized(new { message = "Contul este blocat temporar. Incearca din nou peste cateva minute." });
+        }
+
+        // E-mailul a fost verificat de Google
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+        }
+
+        if (user.TwoFactorEnabled)
+        {
+            return Ok(new TwoFactorRequiredResponse(true, _tokenService.CreateTwoFactorToken(user)));
+        }
 
         return Ok(await CreateAuthResponseAsync(user));
     }

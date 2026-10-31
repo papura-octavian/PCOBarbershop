@@ -6,7 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { safeReturnUrl } from '../../core/auth.guards';
+import { AuthResponse, TwoFactorRequiredResponse } from '../../core/auth.models';
 import { AuthService } from '../../core/auth.service';
+import { GoogleSignIn } from '../../core/google-sign-in';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +19,7 @@ import { AuthService } from '../../core/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    GoogleSignIn,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -30,8 +33,9 @@ export class Login {
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
-  // Daca e setat, contul are 2FA si asteptam codul din Google Authenticator (pasul 2)
-  readonly twoFactorToken = signal<string | null>(null);
+  // Daca e setat, contul are 2FA si asteptam codul din Google Authenticator (pasul 2).
+  // Poate veni si de pe pagina de inregistrare, dupa "Continua cu Google".
+  readonly twoFactorToken = signal<string | null>(history.state?.twoFactorToken ?? null);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -52,14 +56,7 @@ export class Login {
     this.errorMessage.set(null);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: (response) => {
-        if ('requiresTwoFactor' in response) {
-          this.loading.set(false);
-          this.twoFactorToken.set(response.twoFactorToken);
-          return;
-        }
-        this.goToReturnUrl();
-      },
+      next: (response) => this.onSignedIn(response),
       error: (err) => {
         this.loading.set(false);
 
@@ -81,6 +78,16 @@ export class Login {
         );
       },
     });
+  }
+
+  // Dupa parola corecta sau dupa Google: fie suntem logati, fie urmeaza codul 2FA
+  onSignedIn(response: AuthResponse | TwoFactorRequiredResponse): void {
+    this.loading.set(false);
+    if ('requiresTwoFactor' in response) {
+      this.twoFactorToken.set(response.twoFactorToken);
+      return;
+    }
+    this.goToReturnUrl();
   }
 
   submitCode(): void {

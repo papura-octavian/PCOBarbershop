@@ -57,6 +57,8 @@
           {{ loading() ? 'Se autentifica...' : 'Autentifica-te' }}
         </button>
       </form>
+
+      <app-google-sign-in (signedIn)="onSignedIn($event)" />
       }
     </mat-card-content>
 

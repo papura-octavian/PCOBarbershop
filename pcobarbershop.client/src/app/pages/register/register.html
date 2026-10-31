@@ -62,6 +62,8 @@
           {{ loading() ? 'Se creeaza contul...' : 'Creeaza cont' }}
         </button>
       </form>
+
+      <app-google-sign-in (signedIn)="onGoogleSignedIn($event)" />
     </mat-card-content>
 
     <mat-card-actions>

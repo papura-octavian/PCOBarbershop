@@ -57,6 +57,15 @@ public class LoginTwoFactorRequest
     public string Code { get; set; } = string.Empty;
 }
 
+public class GoogleLoginRequest
+{
+    // "credential" primit de la butonul Google Sign-In (un ID token JWT semnat de Google)
+    [Required]
+    public string IdToken { get; set; } = string.Empty;
+}
+
+public record GoogleConfigDto(bool Enabled, string ClientId);
+
 public record AuthResponse(string Token, DateTime ExpiresAtUtc, string Email, IList<string> Roles);
 
 // Raspunsul la login cand contul are 2FA: mai trebuie trimis codul din aplicatie

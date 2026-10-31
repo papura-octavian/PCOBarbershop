@@ -45,6 +45,19 @@ export class AuthService {
       );
   }
 
+  // Trimite serverului ID token-ul primit de la Google; la fel ca login, poate cere pasul 2FA
+  loginWithGoogle(idToken: string): Observable<AuthResponse | TwoFactorRequiredResponse> {
+    return this.http
+      .post<AuthResponse | TwoFactorRequiredResponse>(`${this.apiUrl}/google`, { idToken })
+      .pipe(
+        tap((response) => {
+          if ('token' in response) {
+            this.saveToken(response.token);
+          }
+        })
+      );
+  }
+
   loginTwoFactor(request: LoginTwoFactorRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/login-2fa`, request)
