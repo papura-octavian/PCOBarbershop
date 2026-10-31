@@ -73,12 +73,4 @@ public class AuthController : ControllerBase
             roles = User.FindAll("role").Select(c => c.Value)
         });
     }
-
-    // Endpoint temporar, ca sa verifici ca rolurile blocheaza accesul. Il stergi mai tarziu.
-    [Authorize(Roles = "Frizer")]
-    [HttpGet("barber-only")]
-    public IActionResult BarberOnly()
-    {
-        return Ok(new { message = "Esti frizer, ai acces." });
-    }
 }
