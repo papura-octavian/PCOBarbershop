@@ -1,17 +1,16 @@
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AppointmentItem, statusLabel } from '../../core/booking.models';
 import { BookingService } from '../../core/booking.service';
-import { formatSalonDate, formatSalonTime } from '../../core/date-utils';
+import { formatSalonDate, formatSalonTime, salonDateParts } from '../../core/date-utils';
 import { PaymentService } from '../../core/payment.service';
 
 @Component({
   selector: 'app-my-appointments',
-  imports: [DecimalPipe, NgTemplateOutlet, RouterLink, MatCardModule, MatButtonModule, MatSnackBarModule],
+  imports: [DecimalPipe, NgTemplateOutlet, RouterLink, MatButtonModule, MatSnackBarModule],
   templateUrl: './my-appointments.html',
   styleUrl: './my-appointments.css',
 })
@@ -37,6 +36,7 @@ export class MyAppointments implements OnInit {
   readonly statusLabel = statusLabel;
   readonly date = formatSalonDate;
   readonly time = formatSalonTime;
+  readonly dateParts = salonDateParts;
 
   ngOnInit(): void {
     // Stripe ne intoarce aici cu ?payment=cancelled daca clientul a renuntat la plata

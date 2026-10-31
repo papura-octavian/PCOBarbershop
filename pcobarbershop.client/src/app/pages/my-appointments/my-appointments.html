@@ -1,59 +1,82 @@
-<div class="my-appointments">
-  <h1>Programarile mele</h1>
+<div class="page narrow">
+  <header class="page-header header-row">
+    <div>
+      <span class="eyebrow">Contul meu</span>
+      <h1>Programarile mele</h1>
+      <p>Programarile viitoare si istoricul vizitelor tale.</p>
+    </div>
+    <a mat-flat-button routerLink="/book">
+      <span class="material-symbols-outlined">add</span> Programare noua
+    </a>
+  </header>
 
   @if (loading()) {
-  <p>Se incarca programarile...</p>
+  <p class="loading">Se incarca programarile...</p>
   } @else if (error()) {
-  <p class="form-error">{{ error() }}</p>
+  <p class="alert error"><span class="material-symbols-outlined">error</span>{{ error() }}</p>
   } @else if (appointments().length === 0) {
-  <p>Nu ai nicio programare.</p>
-  <a mat-flat-button routerLink="/book">Rezerva acum</a>
-  } @else {
-  <h2>Urmatoarele</h2>
-  @if (upcoming().length === 0) {
-  <p class="hint">Nu ai programari viitoare.</p>
-  <a mat-flat-button routerLink="/book">Rezerva acum</a>
-  }
-  <div class="list">
-    @for (a of upcoming(); track a.id) {
-    <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
-    }
+  <div class="card empty-state">
+    <span class="material-symbols-outlined">event_upcoming</span>
+    <h3>Nu ai nicio programare inca</h3>
+    <p>Alege serviciul si ora care iti convin, dureaza mai putin de un minut.</p>
+    <a mat-flat-button routerLink="/book">Rezerva acum</a>
   </div>
+  } @else {
+  <section class="section">
+    <h2 class="list-title">Urmatoarele</h2>
+    @if (upcoming().length === 0) {
+    <p class="muted">Nu ai programari viitoare.</p>
+    }
+    <div class="list">
+      @for (a of upcoming(); track a.id) {
+      <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
+      }
+    </div>
+  </section>
 
   @if (past().length > 0) {
-  <h2>Istoric</h2>
-  <div class="list past">
-    @for (a of past(); track a.id) {
-    <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
-    }
-  </div>
+  <section class="section">
+    <h2 class="list-title">Istoric</h2>
+    <div class="list past">
+      @for (a of past(); track a.id) {
+      <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
+      }
+    </div>
+  </section>
   }
   }
 </div>
 
 <ng-template #card let-a>
-  <mat-card class="appointment" [class.cancelled]="a.status === 'Cancelled'">
-    <mat-card-content>
-      <div class="when">
-        <span class="date">{{ date(a.startUtc) }}</span>
-        <span>{{ time(a.startUtc) }} - {{ time(a.endUtc) }}</span>
-      </div>
-      <div class="what">
-        <span class="name">{{ a.serviceName }}</span>
-        <span>cu {{ a.barberName }}</span>
+  <article class="appointment" [class.cancelled]="a.status === 'Cancelled'">
+    <div class="date-block">
+      <span class="weekday">{{ dateParts(a.startUtc).weekday }}</span>
+      <span class="day">{{ dateParts(a.startUtc).day }}</span>
+      <span class="month">{{ dateParts(a.startUtc).month }}</span>
+    </div>
+
+    <div class="info">
+      <div class="title-row">
+        <h3>{{ a.serviceName }}</h3>
+        <span class="badge" [attr.data-status]="a.status">{{ statusLabel(a.status) }}</span>
       </div>
       <div class="meta">
-        <span class="price">{{ a.price | number: '1.0-2' }} RON</span>
-        <span class="status" [attr.data-status]="a.status">{{ statusLabel(a.status) }}</span>
+        <span><span class="material-symbols-outlined">schedule</span> {{ time(a.startUtc) }} - {{ time(a.endUtc) }}</span>
+        <span><span class="material-symbols-outlined">person</span> {{ a.barberName }}</span>
+        <span><span class="material-symbols-outlined">payments</span> {{ a.price | number: '1.0-2' }} RON</span>
       </div>
-    </mat-card-content>
-    @if (canPay(a)) {
-    <mat-card-actions>
-      <span class="hint">Plateste pana la {{ time(a.paymentExpiresAt!) }}, altfel ora se elibereaza.</span>
-      <button mat-flat-button type="button" [disabled]="payingId() === a.id" (click)="pay(a)">
-        {{ payingId() === a.id ? 'Se deschide plata...' : 'Plateste cu cardul' }}
-      </button>
-    </mat-card-actions>
-    }
-  </mat-card>
+
+      @if (canPay(a)) {
+      <div class="pay-row">
+        <span class="pay-hint">
+          <span class="material-symbols-outlined">timer</span>
+          Plateste pana la {{ time(a.paymentExpiresAt!) }}, altfel ora se elibereaza.
+        </span>
+        <button mat-flat-button type="button" [disabled]="payingId() === a.id" (click)="pay(a)">
+          {{ payingId() === a.id ? 'Se deschide plata...' : 'Plateste cu cardul' }}
+        </button>
+      </div>
+      }
+    </div>
+  </article>
 </ng-template>

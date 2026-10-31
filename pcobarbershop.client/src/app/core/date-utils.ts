@@ -58,3 +58,17 @@ export function startOfWeek(date: Date): Date {
   const offset = (copy.getDay() + 6) % 7;   // luni = 0 ... duminica = 6
   return addDays(copy, -offset);
 }
+
+const partsFormat = new Intl.DateTimeFormat('ro-RO', {
+  timeZone: SALON_ZONE,
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+});
+
+// "2026-11-02T08:00:00Z" => { weekday: "lun.", day: "2", month: "nov." } (pentru blocul de data din carduri)
+export function salonDateParts(utc: string): { weekday: string; day: string; month: string } {
+  const parts = partsFormat.formatToParts(new Date(utc));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return { weekday: get('weekday'), day: get('day'), month: get('month') };
+}

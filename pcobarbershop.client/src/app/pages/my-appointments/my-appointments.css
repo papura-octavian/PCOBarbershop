@@ -1,85 +1,148 @@
-.my-appointments {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-row .material-symbols-outlined {
+  font-size: 20px;
+  margin-right: 0.25rem;
+}
+
+.list-title {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
-.past {
+.past .appointment {
   opacity: 0.75;
 }
 
-mat-card-content {
+.appointment {
   display: flex;
-  justify-content: space-between;
+  gap: 1.25rem;
+  align-items: stretch;
+  padding: 1rem;
+  background: var(--pco-card);
+  border: 1px solid var(--pco-border);
+  border-radius: var(--pco-radius);
+  box-shadow: var(--pco-shadow);
+}
+
+.date-block {
+  flex: none;
+  width: 72px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--pco-ink);
+  color: #fff;
+  padding: 0.5rem 0;
+}
+
+.weekday,
+.month {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pco-gold-light);
+}
+
+.day {
+  font-family: var(--pco-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.when,
-.what,
+.title-row h3 {
+  margin: 0;
+}
+
 .meta {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  color: var(--pco-muted);
+  font-size: 0.9rem;
 }
 
-.meta {
-  align-items: flex-end;
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.date,
-.name,
-.price {
-  font-weight: 600;
+.meta .material-symbols-outlined {
+  font-size: 18px;
 }
 
-.cancelled .when,
-.cancelled .what {
+.cancelled h3,
+.cancelled .meta span:first-child {
   text-decoration: line-through;
 }
 
-.status {
-  font-size: 0.8rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  background: rgba(128, 128, 128, 0.15);
+.cancelled .date-block {
+  background: var(--mat-sys-surface-container-high);
+  color: var(--pco-muted);
 }
 
-.status[data-status='Confirmed'] {
-  background: #d7f5dd;
-  color: #1b5e20;
-}
-
-.status[data-status='PendingPayment'] {
-  background: #fff3cd;
-  color: #7a5a00;
-}
-
-.status[data-status='Cancelled'] {
-  background: #fde2e1;
-  color: #b3261e;
-}
-
-.hint {
-  opacity: 0.7;
-}
-
-mat-card-actions {
+.pay-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
-  padding: 0 16px 16px;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background: var(--pco-warning-bg);
 }
 
-.form-error {
-  color: #b3261e;
+.pay-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--pco-warning);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pay-hint .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.25rem;
+}
+
+.empty-state p {
+  margin: 0 0 1.25rem;
 }
