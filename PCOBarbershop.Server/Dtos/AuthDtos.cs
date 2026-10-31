@@ -41,4 +41,29 @@ public class ResendConfirmationRequest
     public string Email { get; set; } = string.Empty;
 }
 
+public class TwoFactorCodeRequest
+{
+    [Required, StringLength(20)]
+    public string Code { get; set; } = string.Empty;
+}
+
+public class LoginTwoFactorRequest
+{
+    [Required]
+    public string TwoFactorToken { get; set; } = string.Empty;
+
+    // Codul de 6 cifre din Google Authenticator sau un cod de recuperare
+    [Required, StringLength(20)]
+    public string Code { get; set; } = string.Empty;
+}
+
 public record AuthResponse(string Token, DateTime ExpiresAtUtc, string Email, IList<string> Roles);
+
+// Raspunsul la login cand contul are 2FA: mai trebuie trimis codul din aplicatie
+public record TwoFactorRequiredResponse(bool RequiresTwoFactor, string TwoFactorToken);
+
+public record TwoFactorStatusDto(bool Enabled, int RecoveryCodesLeft);
+
+public record TwoFactorSetupDto(string SharedKey, string QrCodeDataUrl);
+
+public record RecoveryCodesDto(List<string> RecoveryCodes);

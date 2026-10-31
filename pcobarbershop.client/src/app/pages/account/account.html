@@ -1,0 +1,93 @@
+<div class="account">
+  <h1>Securitate</h1>
+  @if (auth.currentUser(); as user) {
+  <p class="hint">Cont: <strong>{{ user.email }}</strong></p>
+  }
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Autentificare in doi pasi (2FA)</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+      <p>Se incarca...</p>
+      } @else if (recoveryCodes(); as codes) {
+      <p class="success">Autentificarea in doi pasi este acum <strong>activa</strong>.</p>
+      <p>
+        Pastreaza aceste coduri de recuperare intr-un loc sigur. Daca pierzi telefonul, te poti autentifica
+        cu unul dintre ele (fiecare merge o singura data). <strong>Nu le vei mai vedea din nou.</strong>
+      </p>
+      <ul class="codes">
+        @for (code of codes; track code) {
+        <li>{{ code }}</li>
+        }
+      </ul>
+      <button mat-flat-button type="button" (click)="closeRecoveryCodes()">Le-am salvat</button>
+      } @else if (setup(); as s) {
+      <ol class="steps">
+        <li>Instaleaza <strong>Google Authenticator</strong> (sau o aplicatie similara) pe telefon.</li>
+        <li>In aplicatie, apasa <strong>+</strong> si scaneaza codul QR:</li>
+      </ol>
+      <img class="qr" [src]="s.qrCodeDataUrl" alt="Cod QR pentru Google Authenticator" />
+      <p class="hint">
+        Nu poti scana? Introdu manual cheia: <code class="key">{{ s.sharedKey }}</code>
+      </p>
+      <ol class="steps" start="3">
+        <li>Scrie mai jos codul de 6 cifre afisat de aplicatie.</li>
+      </ol>
+      <ng-container [formGroup]="codeForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Cod din aplicatie</mat-label>
+          <input matInput formControlName="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+          @if (codeForm.controls.code.invalid) {
+          <mat-error>Codul are exact 6 cifre.</mat-error>
+          }
+        </mat-form-field>
+      </ng-container>
+      } @else if (status()?.enabled) {
+      <p class="success">Autentificarea in doi pasi este <strong>activa</strong>.</p>
+      <p class="hint">Coduri de recuperare ramase: {{ status()?.recoveryCodesLeft }}</p>
+      @if (disabling()) {
+      <p>Ca sa o dezactivezi, introdu codul curent din Google Authenticator:</p>
+      <ng-container [formGroup]="codeForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Cod din aplicatie</mat-label>
+          <input matInput formControlName="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+          @if (codeForm.controls.code.invalid) {
+          <mat-error>Codul are exact 6 cifre.</mat-error>
+          }
+        </mat-form-field>
+      </ng-container>
+      }
+      } @else {
+      <p>
+        Pe langa parola, la autentificare vei introduce si un cod de 6 cifre generat de telefon. Chiar daca
+        cineva iti afla parola, nu poate intra in cont fara telefonul tau.
+      </p>
+      }
+
+      @if (error()) {
+      <p class="form-error">{{ error() }}</p>
+      }
+    </mat-card-content>
+
+    @if (!loading() && !recoveryCodes()) {
+    <mat-card-actions>
+      @if (setup()) {
+      <button mat-flat-button type="button" [disabled]="busy()" (click)="confirmEnable()">Activeaza</button>
+      <button mat-button type="button" (click)="cancel()">Renunta</button>
+      } @else if (status()?.enabled) {
+      @if (disabling()) {
+      <button mat-flat-button type="button" [disabled]="busy()" (click)="confirmDisable()">Dezactiveaza</button>
+      <button mat-button type="button" (click)="cancel()">Renunta</button>
+      } @else {
+      <button mat-stroked-button type="button" (click)="startDisable()">Dezactiveaza 2FA</button>
+      }
+      } @else if (status()) {
+      <button mat-flat-button type="button" [disabled]="busy()" (click)="startSetup()">Activeaza 2FA</button>
+      }
+    </mat-card-actions>
+    }
+  </mat-card>
+</div>

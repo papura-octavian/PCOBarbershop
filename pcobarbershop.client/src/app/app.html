@@ -12,7 +12,7 @@
   @if (auth.hasRole('Frizer')) {
   <a mat-button routerLink="/barber">Zona frizerului</a>
   }
-  <span class="user-email">{{ user.email }}</span>
+  <a mat-button routerLink="/account" class="user-email" title="Securitatea contului">{{ user.email }}</a>
   <button mat-button type="button" (click)="logout()">Deconectare</button>
   } @else {
   <a mat-button routerLink="/login">Autentificare</a>

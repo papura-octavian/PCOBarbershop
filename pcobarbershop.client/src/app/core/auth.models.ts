@@ -22,6 +22,17 @@ export interface AuthResponse {
   roles: string[];
 }
 
+// Raspunsul la login cand contul are 2FA: urmeaza pasul cu codul din aplicatie
+export interface TwoFactorRequiredResponse {
+  requiresTwoFactor: true;
+  twoFactorToken: string;
+}
+
+export interface LoginTwoFactorRequest {
+  twoFactorToken: string;
+  code: string;
+}
+
 export interface CurrentUser {
   id: string;
   email: string;

@@ -30,9 +30,16 @@ export class Login {
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
+  // Daca e setat, contul are 2FA si asteptam codul din Google Authenticator (pasul 2)
+  readonly twoFactorToken = signal<string | null>(null);
+
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
+  });
+
+  readonly codeForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   submit(): void {
@@ -45,9 +52,13 @@ export class Login {
     this.errorMessage.set(null);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        this.router.navigateByUrl(safeReturnUrl(returnUrl));
+      next: (response) => {
+        if ('requiresTwoFactor' in response) {
+          this.loading.set(false);
+          this.twoFactorToken.set(response.twoFactorToken);
+          return;
+        }
+        this.goToReturnUrl();
       },
       error: (err) => {
         this.loading.set(false);
@@ -70,5 +81,40 @@ export class Login {
         );
       },
     });
+  }
+
+  submitCode(): void {
+    const token = this.twoFactorToken();
+    if (!token || this.codeForm.invalid) {
+      this.codeForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    this.auth.loginTwoFactor({ twoFactorToken: token, code: this.codeForm.getRawValue().code }).subscribe({
+      next: () => this.goToReturnUrl(),
+      error: (err) => {
+        this.loading.set(false);
+
+        // Tokenul temporar a expirat (5 minute): o luam de la capat
+        if (err.status === 401) {
+          this.backToPassword();
+        }
+        this.errorMessage.set(err?.error?.message ?? 'A aparut o eroare. Incearca din nou.');
+      },
+    });
+  }
+
+  backToPassword(): void {
+    this.twoFactorToken.set(null);
+    this.codeForm.reset();
+    this.errorMessage.set(null);
+  }
+
+  private goToReturnUrl(): void {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    this.router.navigateByUrl(safeReturnUrl(returnUrl));
   }
 }

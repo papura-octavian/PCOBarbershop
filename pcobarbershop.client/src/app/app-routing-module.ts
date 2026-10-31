@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { guestGuard, roleGuard } from './core/auth.guards';
+import { authGuard, guestGuard, roleGuard } from './core/auth.guards';
+import { Account } from './pages/account/account';
 import { BarberArea } from './pages/barber-area/barber-area';
 import { Home } from './pages/home/home';
 import { Login } from './pages/login/login';
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
   { path: 'confirm-email', component: ConfirmEmail, canActivate: [guestGuard] },
+  { path: 'account', component: Account, canActivate: [authGuard] },
   { path: 'barber', component: BarberArea, canActivate: [roleGuard('Frizer')] },
   { path: 'services', component: Services },
   { path: 'book', component: Book },

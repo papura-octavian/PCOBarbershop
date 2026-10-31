@@ -91,6 +91,51 @@ public class AuthController : ControllerBase
             });
         }
 
+        // Pasul 2 al autentificarii: contul are 2FA, deci cerem si codul din Google Authenticator
+        if (user.TwoFactorEnabled)
+        {
+            return Ok(new TwoFactorRequiredResponse(true, _tokenService.CreateTwoFactorToken(user)));
+        }
+
+        return Ok(await CreateAuthResponseAsync(user));
+    }
+
+    // POST /api/auth/login-2fa - al doilea pas al autentificarii: codul TOTP (sau un cod de recuperare)
+    [HttpPost("login-2fa")]
+    public async Task<ActionResult<AuthResponse>> LoginTwoFactor(LoginTwoFactorRequest request)
+    {
+        var userId = await _tokenService.ValidateTwoFactorTokenAsync(request.TwoFactorToken);
+        var user = userId is null ? null : await _userManager.FindByIdAsync(userId);
+
+        if (user is null || !user.TwoFactorEnabled)
+        {
+            return Unauthorized(new { message = "Sesiunea de autentificare a expirat. Autentifica-te din nou." });
+        }
+
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return Unauthorized(new { message = "Prea multe incercari gresite. Incearca din nou peste cateva minute." });
+        }
+
+        var code = request.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        var valid = await _userManager.VerifyTwoFactorTokenAsync(
+            user, _userManager.Options.Tokens.AuthenticatorTokenProvider, code);
+
+        // Daca nu e un cod din aplicatie, poate fi unul dintre codurile de recuperare (se folosesc o singura data)
+        if (!valid)
+        {
+            valid = (await _userManager.RedeemTwoFactorRecoveryCodeAsync(user, request.Code.Trim())).Succeeded;
+        }
+
+        if (!valid)
+        {
+            await _userManager.AccessFailedAsync(user);
+            return BadRequest(new { message = "Cod invalid." });
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+
         return Ok(await CreateAuthResponseAsync(user));
     }
 

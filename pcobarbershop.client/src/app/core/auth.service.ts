@@ -6,7 +6,9 @@ import {
   ConfirmEmailRequest,
   CurrentUser,
   LoginRequest,
+  LoginTwoFactorRequest,
   RegisterRequest,
+  TwoFactorRequiredResponse,
 } from './auth.models';
 
 const TOKEN_KEY = 'pcobarbershop_token';
@@ -30,9 +32,22 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, request);
   }
 
-  login(request: LoginRequest): Observable<AuthResponse> {
+  // Daca contul are 2FA, raspunsul nu contine tokenul, ci cere pasul al doilea (loginTwoFactor)
+  login(request: LoginRequest): Observable<AuthResponse | TwoFactorRequiredResponse> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, request)
+      .post<AuthResponse | TwoFactorRequiredResponse>(`${this.apiUrl}/login`, request)
+      .pipe(
+        tap((response) => {
+          if ('token' in response) {
+            this.saveToken(response.token);
+          }
+        })
+      );
+  }
+
+  loginTwoFactor(request: LoginTwoFactorRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login-2fa`, request)
       .pipe(tap((response) => this.saveToken(response.token)));
   }
 

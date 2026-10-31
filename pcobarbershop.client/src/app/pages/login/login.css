@@ -17,6 +17,10 @@ form {
   margin-top: 1rem;
 }
 
+.step-info {
+  margin-top: 1rem;
+}
+
 .form-error {
   color: #b3261e;
   margin: 0 0 0.5rem;
