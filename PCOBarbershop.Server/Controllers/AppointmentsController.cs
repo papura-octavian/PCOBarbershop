@@ -93,4 +93,28 @@ public class AppointmentsController : ControllerBase
 
         return Created($"/api/appointments/{appointment.Id}", dto);
     }
+
+    // GET /api/appointments/mine - programarile clientului logat, cele mai noi primele
+    [Authorize(Roles = "Client")]
+    [HttpGet("mine")]
+    public async Task<ActionResult<List<AppointmentDto>>> GetMine()
+    {
+        var clientId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        var appointments = await _db.Appointments
+            .AsNoTracking()
+            .Where(a => a.ClientId == clientId)
+            .OrderByDescending(a => a.StartTime)
+            .Select(a => new AppointmentDto(
+                a.Id,
+                a.Barber.DisplayName,
+                a.Service.Name,
+                a.Service.Price,
+                a.StartTime,
+                a.EndTime,
+                a.Status.ToString()))
+            .ToListAsync();
+
+        return Ok(appointments);
+    }
 }

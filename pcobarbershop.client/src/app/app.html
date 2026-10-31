@@ -6,6 +6,9 @@
   <a mat-button routerLink="/book">Rezerva</a>
 
   @if (auth.currentUser(); as user) {
+  @if (auth.hasRole('Client')) {
+  <a mat-button routerLink="/my-appointments">Programarile mele</a>
+  }
   @if (auth.hasRole('Frizer')) {
   <a mat-button routerLink="/barber">Zona frizerului</a>
   }

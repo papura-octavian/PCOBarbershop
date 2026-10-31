@@ -9,6 +9,17 @@ export interface BarberItem {
   displayName: string;
 }
 
+export interface BarberAppointmentItem {
+  id: number;
+  clientName: string;
+  clientEmail: string;
+  serviceName: string;
+  price: number;
+  startUtc: string;
+  endUtc: string;
+  status: string;
+}
+
 export interface SlotItem {
   startUtc: string;   // se trimite la rezervare
   time: string;       // "09:20", ora locala afisata

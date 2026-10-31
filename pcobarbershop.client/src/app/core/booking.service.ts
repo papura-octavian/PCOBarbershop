@@ -11,4 +11,8 @@ export class BookingService {
   createAppointment(request: CreateAppointmentRequest): Observable<AppointmentItem> {
     return this.http.post<AppointmentItem>('/api/appointments', request);
   }
+
+  getMyAppointments(): Observable<AppointmentItem[]> {
+    return this.http.get<AppointmentItem[]>('/api/appointments/mine');
+  }
 }

@@ -13,3 +13,13 @@ export interface AppointmentItem {
   endUtc: string;
   status: string;   // PendingPayment | Confirmed | Cancelled
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  PendingPayment: 'In asteptare plata',
+  Confirmed: 'Confirmata',
+  Cancelled: 'Anulata',
+};
+
+export function statusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status;
+}

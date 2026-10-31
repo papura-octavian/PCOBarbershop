@@ -1,0 +1,51 @@
+<div class="my-appointments">
+  <h1>Programarile mele</h1>
+
+  @if (loading()) {
+  <p>Se incarca programarile...</p>
+  } @else if (error()) {
+  <p class="form-error">{{ error() }}</p>
+  } @else if (appointments().length === 0) {
+  <p>Nu ai nicio programare.</p>
+  <a mat-flat-button routerLink="/book">Rezerva acum</a>
+  } @else {
+  <h2>Urmatoarele</h2>
+  @if (upcoming().length === 0) {
+  <p class="hint">Nu ai programari viitoare.</p>
+  <a mat-flat-button routerLink="/book">Rezerva acum</a>
+  }
+  <div class="list">
+    @for (a of upcoming(); track a.id) {
+    <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
+    }
+  </div>
+
+  @if (past().length > 0) {
+  <h2>Istoric</h2>
+  <div class="list past">
+    @for (a of past(); track a.id) {
+    <ng-container [ngTemplateOutlet]="card" [ngTemplateOutletContext]="{ $implicit: a }" />
+    }
+  </div>
+  }
+  }
+</div>
+
+<ng-template #card let-a>
+  <mat-card class="appointment" [class.cancelled]="a.status === 'Cancelled'">
+    <mat-card-content>
+      <div class="when">
+        <span class="date">{{ date(a.startUtc) }}</span>
+        <span>{{ time(a.startUtc) }} - {{ time(a.endUtc) }}</span>
+      </div>
+      <div class="what">
+        <span class="name">{{ a.serviceName }}</span>
+        <span>cu {{ a.barberName }}</span>
+      </div>
+      <div class="meta">
+        <span class="price">{{ a.price | number: '1.0-2' }} RON</span>
+        <span class="status" [attr.data-status]="a.status">{{ statusLabel(a.status) }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-template>

@@ -20,9 +20,6 @@ public class AvailabilityService : IAvailabilityService
     // Cat de departe in viitor se poate rezerva
     private const int MaxDaysAhead = 60;
 
-    // Fusul orar al salonului. Daca da eroare pe Windows, foloseste "E. Europe Standard Time".
-    private static readonly TimeZoneInfo SalonZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Bucharest");
-
     private readonly AppDbContext _db;
 
     public AvailabilityService(AppDbContext db)
@@ -33,7 +30,7 @@ public class AvailabilityService : IAvailabilityService
     public async Task<List<SlotDto>> GetFreeSlotsAsync(int barberId, int durationMinutes, DateOnly date)
     {
         var nowUtc = DateTime.UtcNow;
-        var todayLocal = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(nowUtc, SalonZone));
+        var todayLocal = SalonTime.Today;
 
         // zile trecute sau prea departe in viitor: nu exista sloturi
         if (date < todayLocal || date > todayLocal.AddDays(MaxDaysAhead))
@@ -51,8 +48,8 @@ public class AvailabilityService : IAvailabilityService
             return new List<SlotDto>();   // zi libera
         }
 
-        var windowStartUtc = ToUtc(date, hours.StartTime);
-        var windowEndUtc = ToUtc(date, hours.EndTime);
+        var windowStartUtc = SalonTime.ToUtc(date, hours.StartTime);
+        var windowEndUtc = SalonTime.ToUtc(date, hours.EndTime);
 
         // 2. programarile existente care ating intervalul de lucru (fara cele anulate)
         var busy = await _db.Appointments
@@ -84,7 +81,7 @@ public class AvailabilityService : IAvailabilityService
                 continue;
             }
 
-            var local = TimeZoneInfo.ConvertTimeFromUtc(start, SalonZone);
+            var local = SalonTime.ToLocal(start);
             slots.Add(new SlotDto(start, local.ToString("HH:mm", CultureInfo.InvariantCulture)));
         }
 
@@ -95,16 +92,9 @@ public class AvailabilityService : IAvailabilityService
     // (in program, pe grila, in viitor, fara suprapuneri)
     public async Task<bool> IsSlotFreeAsync(int barberId, int durationMinutes, DateTime startUtc)
     {
-        var localDate = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(startUtc, SalonZone));
+        var localDate = DateOnly.FromDateTime(SalonTime.ToLocal(startUtc));
         var slots = await GetFreeSlotsAsync(barberId, durationMinutes, localDate);
 
         return slots.Any(s => s.StartUtc == startUtc);
-    }
-
-    // Ora locala a salonului -> UTC
-    private static DateTime ToUtc(DateOnly date, TimeOnly time)
-    {
-        var local = DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Unspecified);
-        return TimeZoneInfo.ConvertTimeToUtc(local, SalonZone);
     }
 }

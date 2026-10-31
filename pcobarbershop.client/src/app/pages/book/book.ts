@@ -10,10 +10,11 @@ import { Observable, catchError, forkJoin, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BarberItem, SlotItem } from '../../core/barber.models';
 import { BarberService } from '../../core/barber.service';
-import { AppointmentItem } from '../../core/booking.models';
+import { AppointmentItem, statusLabel } from '../../core/booking.models';
 import { BookingService } from '../../core/booking.service';
 import { ServiceItem } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
+import { addDays, toIsoDate } from '../../core/date-utils';
 
 const MAX_DAYS_AHEAD = 60;   // aceeasi valoare ca pe server
 
@@ -57,8 +58,10 @@ export class Book implements OnInit {
   readonly confirmed = signal<AppointmentItem | null>(null);
 
   // Limitele selectorului de data
-  readonly minDate = this.toIsoDate(new Date());
-  readonly maxDate = this.toIsoDate(this.addDays(new Date(), MAX_DAYS_AHEAD));
+  readonly minDate = toIsoDate(new Date());
+  readonly maxDate = toIsoDate(addDays(new Date(), MAX_DAYS_AHEAD));
+
+  readonly statusLabel = statusLabel;
 
   readonly form = this.fb.group({
     serviceId: this.fb.control<number | null>(null),
@@ -197,27 +200,5 @@ export class Book implements OnInit {
   newBooking(): void {
     this.confirmed.set(null);
     this.form.reset({ serviceId: null, barberId: null, date: '' });
-  }
-
-  statusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      PendingPayment: 'In asteptare plata',
-      Confirmed: 'Confirmata',
-      Cancelled: 'Anulata',
-    };
-    return labels[status] ?? status;
-  }
-
-  // Atentie: toISOString() ar da data in UTC si ar putea decala ziua. Folosim data locala.
-  private toIsoDate(date: Date): string {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${date.getFullYear()}-${month}-${day}`;
-  }
-
-  private addDays(date: Date, days: number): Date {
-    const copy = new Date(date);
-    copy.setDate(copy.getDate() + days);
-    return copy;
   }
 }

@@ -71,13 +71,7 @@ public class BarbersController : ControllerBase
     [HttpGet("me/schedule")]
     public async Task<ActionResult<List<WorkingHoursDto>>> GetMySchedule()
     {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-        var barberId = await _db.Barbers
-            .Where(b => b.UserId == userId)
-            .Select(b => (int?)b.Id)
-            .FirstOrDefaultAsync();
-
+        var barberId = await GetCurrentBarberIdAsync();
         if (barberId is null)
         {
             return NotFound(new { message = "Nu exista profil de frizer pentru acest cont." });
@@ -91,5 +85,61 @@ public class BarbersController : ControllerBase
             .ToListAsync();
 
         return Ok(schedule);
+    }
+
+    // GET /api/barbers/me/appointments?from=2026-10-26&to=2026-11-01
+    // Calendarul de rezervari al frizerului logat, intre doua zile (inclusiv), ora locala a salonului
+    [Authorize(Roles = "Frizer")]
+    [HttpGet("me/appointments")]
+    public async Task<ActionResult<List<BarberAppointmentDto>>> GetMyAppointments(
+        [FromQuery] DateOnly? from,
+        [FromQuery] DateOnly? to)
+    {
+        if (from is null || to is null || to < from)
+        {
+            return BadRequest(new { message = "Parametrii 'from' si 'to' sunt obligatorii (yyyy-MM-dd), iar 'to' >= 'from'." });
+        }
+
+        if (to.Value.DayNumber - from.Value.DayNumber > 62)
+        {
+            return BadRequest(new { message = "Intervalul maxim este de 62 de zile." });
+        }
+
+        var barberId = await GetCurrentBarberIdAsync();
+        if (barberId is null)
+        {
+            return NotFound(new { message = "Nu exista profil de frizer pentru acest cont." });
+        }
+
+        var fromUtc = SalonTime.ToUtc(from.Value, TimeOnly.MinValue);
+        var toUtc = SalonTime.ToUtc(to.Value.AddDays(1), TimeOnly.MinValue);
+
+        var appointments = await _db.Appointments
+            .AsNoTracking()
+            .Where(a => a.BarberId == barberId && a.StartTime >= fromUtc && a.StartTime < toUtc)
+            .OrderBy(a => a.StartTime)
+            .Select(a => new BarberAppointmentDto(
+                a.Id,
+                a.Client.FirstName + " " + a.Client.LastName,
+                a.Client.Email ?? string.Empty,
+                a.Service.Name,
+                a.Service.Price,
+                a.StartTime,
+                a.EndTime,
+                a.Status.ToString()))
+            .ToListAsync();
+
+        return Ok(appointments);
+    }
+
+    // Id-ul frizerului din tabela Barbers, pentru contul din token
+    private async Task<int?> GetCurrentBarberIdAsync()
+    {
+        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        return await _db.Barbers
+            .Where(b => b.UserId == userId)
+            .Select(b => (int?)b.Id)
+            .FirstOrDefaultAsync();
     }
 }

@@ -1,33 +1,77 @@
 <div class="barber-area">
   <h1>Zona frizerului</h1>
-  <h2>Programul tau de lucru</h2>
 
-  @if (loading()) {
-  <p>Se incarca programul...</p>
-  } @else if (error()) {
-  <p class="form-error">{{ error() }}</p>
-  } @else if (schedule().length === 0) {
-  <p>Nu ai niciun interval de lucru setat.</p>
-  } @else {
-  <table class="schedule">
-    <thead>
-      <tr>
-        <th>Ziua</th>
-        <th>De la</th>
-        <th>Pana la</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (item of schedule(); track item.dayOfWeek) {
-      <tr>
-        <td>{{ dayName(item.dayOfWeek) }}</td>
-        <td>{{ time(item.startTime) }}</td>
-        <td>{{ time(item.endTime) }}</td>
-      </tr>
+  <section>
+    <div class="calendar-header">
+      <h2>Rezervari</h2>
+      <div class="week-nav">
+        <button mat-stroked-button type="button" (click)="previousWeek()">&lsaquo; Inapoi</button>
+        <button mat-button type="button" (click)="currentWeek()">Saptamana curenta</button>
+        <button mat-stroked-button type="button" (click)="nextWeek()">Inainte &rsaquo;</button>
+      </div>
+    </div>
+    <p class="week-label">{{ weekLabel() }}</p>
+
+    @if (calendarLoading()) {
+    <p>Se incarca rezervarile...</p>
+    } @else if (calendarError()) {
+    <p class="form-error">{{ calendarError() }}</p>
+    } @else {
+    <div class="calendar">
+      @for (day of days(); track day.key) {
+      <div class="day" [class.today]="day.isToday">
+        <div class="day-header">
+          <span class="day-name">{{ day.label }}</span>
+          <span class="day-date">{{ day.date }}</span>
+        </div>
+
+        @for (a of day.appointments; track a.id) {
+        <div class="appointment" [attr.data-status]="a.status">
+          <div class="appointment-time">{{ formatTime(a.startUtc) }} - {{ formatTime(a.endUtc) }}</div>
+          <div class="appointment-service">{{ a.serviceName }}</div>
+          <div class="appointment-client" [title]="a.clientEmail">{{ a.clientName }}</div>
+          <div class="appointment-meta">
+            <span>{{ a.price | number: '1.0-2' }} RON</span>
+            <span class="status">{{ statusLabel(a.status) }}</span>
+          </div>
+        </div>
+        } @empty {
+        <p class="empty">Nicio rezervare</p>
+        }
+      </div>
       }
-    </tbody>
-  </table>
+    </div>
+    }
+  </section>
 
-  <p class="note">Editarea programului si zilele libere vor fi adaugate ulterior.</p>
-  }
+  <section>
+    <h2>Programul tau de lucru</h2>
+
+    @if (loading()) {
+    <p>Se incarca programul...</p>
+    } @else if (error()) {
+    <p class="form-error">{{ error() }}</p>
+    } @else if (schedule().length === 0) {
+    <p>Nu ai niciun interval de lucru setat.</p>
+    } @else {
+    <table class="schedule">
+      <thead>
+        <tr>
+          <th>Ziua</th>
+          <th>De la</th>
+          <th>Pana la</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of schedule(); track item.dayOfWeek) {
+        <tr>
+          <td>{{ dayName(item.dayOfWeek) }}</td>
+          <td>{{ time(item.startTime) }}</td>
+          <td>{{ time(item.endTime) }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </section>
 </div>

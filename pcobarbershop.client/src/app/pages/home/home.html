@@ -4,9 +4,15 @@
   @if (auth.currentUser(); as user) {
   <p>Esti autentificat ca <strong>{{ user.email }}</strong> ({{ user.roles.join(', ') }}).</p>
 
-  @if (auth.hasRole('Frizer')) {
-  <a mat-flat-button routerLink="/barber">Zona frizerului</a>
-  }
+  <div class="actions">
+    @if (auth.hasRole('Client')) {
+    <a mat-flat-button routerLink="/book">Rezerva o programare</a>
+    <a mat-stroked-button routerLink="/my-appointments">Programarile mele</a>
+    }
+    @if (auth.hasRole('Frizer')) {
+    <a mat-flat-button routerLink="/barber">Zona frizerului</a>
+    }
+  </div>
   } @else {
   <p>Rezerva-ti online programarea la frizerie. Autentifica-te sau creeaza un cont ca sa continui.</p>
   <div class="actions">

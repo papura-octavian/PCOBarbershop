@@ -15,4 +15,15 @@
         DateTime StartUtc,
         DateTime EndUtc,
         string Status);
+
+    // Programare vazuta de frizer: include si datele clientului
+    public record BarberAppointmentDto(
+        int Id,
+        string ClientName,
+        string ClientEmail,
+        string ServiceName,
+        decimal Price,
+        DateTime StartUtc,
+        DateTime EndUtc,
+        string Status);
 }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BarberItem, SlotItem, WorkingHoursItem } from './barber.models';
+import { BarberAppointmentItem, BarberItem, SlotItem, WorkingHoursItem } from './barber.models';
 
 @Injectable({ providedIn: 'root' })
 export class BarberService {
@@ -20,5 +20,11 @@ export class BarberService {
   // Nu trimitem niciun id: serverul stie cine esti din token
   getMySchedule(): Observable<WorkingHoursItem[]> {
     return this.http.get<WorkingHoursItem[]>('/api/barbers/me/schedule');
+  }
+
+  // from / to = "yyyy-MM-dd", ambele incluse
+  getMyAppointments(from: string, to: string): Observable<BarberAppointmentItem[]> {
+    const params = new HttpParams().set('from', from).set('to', to);
+    return this.http.get<BarberAppointmentItem[]>('/api/barbers/me/appointments', { params });
   }
 }

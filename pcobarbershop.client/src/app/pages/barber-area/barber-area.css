@@ -1,25 +1,129 @@
 .barber-area {
-  max-width: 720px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
+section {
+  margin-bottom: 2.5rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.week-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.week-label {
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .calendar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.day {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
+  padding: 0.5rem;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.day.today {
+  border-color: var(--mat-sys-primary, #6750a4);
+  border-width: 2px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.day-date {
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.appointment {
+  border-left: 4px solid #7a5a00;
+  background: rgba(128, 128, 128, 0.08);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.appointment[data-status='Confirmed'] {
+  border-left-color: #2e7d32;
+}
+
+.appointment[data-status='Cancelled'] {
+  border-left-color: #b3261e;
+  opacity: 0.6;
+}
+
+.appointment[data-status='Cancelled'] .appointment-time,
+.appointment[data-status='Cancelled'] .appointment-service {
+  text-decoration: line-through;
+}
+
+.appointment-time,
+.appointment-service {
+  font-weight: 600;
+}
+
+.appointment-client {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  opacity: 0.8;
+}
+
+.empty {
+  opacity: 0.5;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
 .schedule {
   width: 100%;
+  max-width: 720px;
   border-collapse: collapse;
   margin-top: 1rem;
 }
 
-  .schedule th,
-  .schedule td {
-    text-align: left;
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
-  }
-
-.note {
-  margin-top: 1.5rem;
-  opacity: 0.7;
+.schedule th,
+.schedule td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
 }
 
 .form-error {

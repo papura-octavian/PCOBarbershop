@@ -1,0 +1,76 @@
+.my-appointments {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.past {
+  opacity: 0.75;
+}
+
+mat-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.when,
+.what,
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.meta {
+  align-items: flex-end;
+}
+
+.date,
+.name,
+.price {
+  font-weight: 600;
+}
+
+.cancelled .when,
+.cancelled .what {
+  text-decoration: line-through;
+}
+
+.status {
+  font-size: 0.8rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.status[data-status='Confirmed'] {
+  background: #d7f5dd;
+  color: #1b5e20;
+}
+
+.status[data-status='PendingPayment'] {
+  background: #fff3cd;
+  color: #7a5a00;
+}
+
+.status[data-status='Cancelled'] {
+  background: #fde2e1;
+  color: #b3261e;
+}
+
+.hint {
+  opacity: 0.7;
+}
+
+.form-error {
+  color: #b3261e;
+}
