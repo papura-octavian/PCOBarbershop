@@ -1,23 +1,137 @@
-<div class="home">
-  <h1>PCO Barbershop</h1>
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="eyebrow">Frizerie &middot; Rezervari online</span>
+      <h1>Stil clasic. Programare in cateva secunde.</h1>
+      <p>
+        Alegi serviciul, frizerul si ora care ti se potriveste, platesti securizat cu cardul si primesti
+        confirmarea pe e-mail. Fara telefoane, fara asteptare.
+      </p>
 
-  @if (auth.currentUser(); as user) {
-  <p>Esti autentificat ca <strong>{{ user.email }}</strong> ({{ user.roles.join(', ') }}).</p>
+      <div class="hero-actions">
+        @if (auth.hasRole('Frizer')) {
+        <a mat-flat-button routerLink="/barber" class="big">Vezi rezervarile tale</a>
+        } @else {
+        <a mat-flat-button routerLink="/book" class="big">
+          <span class="material-symbols-outlined">calendar_add_on</span> Rezerva acum
+        </a>
+        <a routerLink="/services" class="ghost">Vezi serviciile si preturile</a>
+        }
+      </div>
 
-  <div class="actions">
-    @if (auth.hasRole('Client')) {
-    <a mat-flat-button routerLink="/book">Rezerva o programare</a>
-    <a mat-stroked-button routerLink="/my-appointments">Programarile mele</a>
-    }
-    @if (auth.hasRole('Frizer')) {
-    <a mat-flat-button routerLink="/barber">Zona frizerului</a>
-    }
+      @if (auth.currentUser(); as user) {
+      <p class="welcome">
+        <span class="material-symbols-outlined">waving_hand</span>
+        Bine ai revenit, <strong>{{ user.email }}</strong>
+      </p>
+      }
+    </div>
+
+    <div class="hero-card">
+      <h3>Cum functioneaza</h3>
+      <ol>
+        <li>
+          <span class="step">1</span>
+          <div><strong>Alegi serviciul</strong><span>Tuns, barba sau pachetul complet</span></div>
+        </li>
+        <li>
+          <span class="step">2</span>
+          <div><strong>Alegi frizerul si ora</strong><span>Vezi doar orele libere, in timp real</span></div>
+        </li>
+        <li>
+          <span class="step">3</span>
+          <div><strong>Platesti cu cardul</strong><span>Plata securizata prin Stripe</span></div>
+        </li>
+      </ol>
+    </div>
   </div>
-  } @else {
-  <p>Rezerva-ti online programarea la frizerie. Autentifica-te sau creeaza un cont ca sa continui.</p>
-  <div class="actions">
-    <a mat-flat-button routerLink="/login">Autentificare</a>
-    <a mat-stroked-button routerLink="/register">Creeaza cont</a>
-  </div>
+</section>
+
+<div class="page">
+  <!-- Servicii -->
+  @if (services().length > 0) {
+  <section class="section">
+    <div class="section-title">
+      <div>
+        <span class="eyebrow">Servicii</span>
+        <h2>Ce iti oferim</h2>
+      </div>
+      <a routerLink="/services" class="see-all">Toate serviciile <span class="material-symbols-outlined">arrow_forward</span></a>
+    </div>
+
+    <div class="services-grid">
+      @for (service of services(); track service.id) {
+      <a class="service-card" [routerLink]="['/book']" [queryParams]="{ serviceId: service.id }">
+        <span class="service-icon"><span class="material-symbols-outlined">{{ serviceIcon(service.name) }}</span></span>
+        <h3>{{ service.name }}</h3>
+        <div class="service-meta">
+          <span><span class="material-symbols-outlined">schedule</span> {{ service.durationMinutes }} min</span>
+          <span class="price">{{ service.price | number: '1.0-2' }} RON</span>
+        </div>
+        <span class="service-cta">Rezerva <span class="material-symbols-outlined">arrow_forward</span></span>
+      </a>
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Frizeri -->
+  @if (barbers().length > 0) {
+  <section class="section">
+    <div class="section-title">
+      <div>
+        <span class="eyebrow">Echipa</span>
+        <h2>Frizerii nostri</h2>
+      </div>
+    </div>
+
+    <div class="barbers-grid">
+      @for (barber of barbers(); track barber.id) {
+      <div class="barber-card">
+        <span class="barber-avatar">{{ initials(barber.displayName) }}</span>
+        <div>
+          <h3>{{ barber.displayName }}</h3>
+          <span class="muted">Frizer</span>
+        </div>
+        @if (!auth.hasRole('Frizer')) {
+        <a mat-stroked-button [routerLink]="['/book']" [queryParams]="{ barberId: barber.id }">Rezerva</a>
+        }
+      </div>
+      }
+    </div>
+  </section>
+  }
+
+  <!-- Avantaje -->
+  <section class="section features">
+    <div class="feature">
+      <span class="material-symbols-outlined">credit_card</span>
+      <h3>Plata securizata</h3>
+      <p>Datele cardului sunt introduse direct pe pagina Stripe, nu ajung niciodata la noi.</p>
+    </div>
+    <div class="feature">
+      <span class="material-symbols-outlined">mark_email_read</span>
+      <h3>Confirmare pe e-mail</h3>
+      <p>Primesti detaliile programarii pe e-mail si esti anuntat imediat daca ceva se schimba.</p>
+    </div>
+    <div class="feature">
+      <span class="material-symbols-outlined">verified_user</span>
+      <h3>Cont protejat</h3>
+      <p>Autentificare cu Google si, optional, in doi pasi cu Google Authenticator.</p>
+    </div>
+  </section>
+
+  @if (!auth.isAuthenticated()) {
+  <section class="cta-band">
+    <div>
+      <h2>Prima data aici?</h2>
+      <p>Creeaza un cont gratuit in mai putin de un minut si rezerva-ti locul.</p>
+    </div>
+    <div class="actions">
+      <a mat-flat-button routerLink="/register">Creeaza cont</a>
+      <a routerLink="/login" class="ghost">Am deja cont</a>
+    </div>
+  </section>
   }
 </div>
