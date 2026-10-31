@@ -1,21 +1,37 @@
-<div class="barber-area">
-  <h1>Zona frizerului</h1>
+<div class="page wide">
+  <header class="page-header">
+    <span class="eyebrow">Zona frizerului</span>
+    <h1>Calendarul tau</h1>
+    <p>Rezervarile pe saptamana si programul tau de lucru.</p>
+  </header>
 
-  <section>
+  <section class="section card">
     <div class="calendar-header">
-      <h2>Rezervari</h2>
+      <div>
+        <h2>Rezervari</h2>
+        <p class="week-label">{{ weekLabel() }}</p>
+      </div>
       <div class="week-nav">
-        <button mat-stroked-button type="button" (click)="previousWeek()">&lsaquo; Inapoi</button>
-        <button mat-button type="button" (click)="currentWeek()">Saptamana curenta</button>
-        <button mat-stroked-button type="button" (click)="nextWeek()">Inainte &rsaquo;</button>
+        <button mat-stroked-button type="button" (click)="previousWeek()" aria-label="Saptamana anterioara">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button mat-button type="button" (click)="currentWeek()">Azi</button>
+        <button mat-stroked-button type="button" (click)="nextWeek()" aria-label="Saptamana urmatoare">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
       </div>
     </div>
-    <p class="week-label">{{ weekLabel() }}</p>
+
+    <div class="legend">
+      <span><i class="dot confirmed"></i> Confirmata</span>
+      <span><i class="dot pending"></i> In asteptare plata</span>
+      <span><i class="dot cancelled"></i> Anulata</span>
+    </div>
 
     @if (calendarLoading()) {
-    <p>Se incarca rezervarile...</p>
+    <p class="loading">Se incarca rezervarile...</p>
     } @else if (calendarError()) {
-    <p class="form-error">{{ calendarError() }}</p>
+    <p class="alert error"><span class="material-symbols-outlined">error</span>{{ calendarError() }}</p>
     } @else {
     <div class="calendar">
       @for (day of days(); track day.key) {
@@ -29,17 +45,21 @@
         <div class="appointment" [attr.data-status]="a.status">
           <div class="appointment-time">{{ formatTime(a.startUtc) }} - {{ formatTime(a.endUtc) }}</div>
           <div class="appointment-service">{{ a.serviceName }}</div>
-          <div class="appointment-client" [title]="a.clientEmail">{{ a.clientName }}</div>
+          <div class="appointment-client" [title]="a.clientEmail">
+            <span class="material-symbols-outlined">person</span>{{ a.clientName }}
+          </div>
           <div class="appointment-meta">
             <span>{{ a.price | number: '1.0-2' }} RON</span>
             <span class="status">{{ statusLabel(a.status) }}</span>
           </div>
           @if (canCancel(a)) {
-          <button mat-button type="button" class="cancel-button" (click)="cancel(a)">Anuleaza</button>
+          <button type="button" class="cancel-button" (click)="cancel(a)">
+            <span class="material-symbols-outlined">close</span> Anuleaza
+          </button>
           }
         </div>
         } @empty {
-        <p class="empty">Nicio rezervare</p>
+        <p class="empty">Liber</p>
         }
       </div>
       }
@@ -47,55 +67,46 @@
     }
   </section>
 
-  <section>
+  <section class="section card schedule-card">
     <h2>Programul tau de lucru</h2>
+    <p class="muted">Bifeaza zilele in care lucrezi si alege intervalul orar.</p>
 
     @if (loading()) {
-    <p>Se incarca programul...</p>
+    <p class="loading">Se incarca programul...</p>
     } @else if (error()) {
-    <p class="form-error">{{ error() }}</p>
+    <p class="alert error"><span class="material-symbols-outlined">error</span>{{ error() }}</p>
     } @else {
     <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()">
-      <table class="schedule" formArrayName="days">
-        <thead>
-          <tr>
-            <th>Ziua</th>
-            <th>Lucrez</th>
-            <th>De la</th>
-            <th>Pana la</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of dayRows.controls; track row.value.dayOfWeek; let i = $index) {
-          <tr [formGroupName]="i" [class.off]="!row.value.working">
-            <td>{{ dayName(row.value.dayOfWeek) }}</td>
-            <td><mat-checkbox formControlName="working" /></td>
-            @if (row.value.working) {
-            <td><input class="time-input" type="time" step="1200" formControlName="start" /></td>
-            <td><input class="time-input" type="time" step="1200" formControlName="end" /></td>
-            } @else {
-            <td colspan="2" class="off-label">Zi libera</td>
-            }
-          </tr>
+      <div class="schedule" formArrayName="days">
+        @for (row of dayRows.controls; track row.value.dayOfWeek; let i = $index) {
+        <div class="schedule-row" [formGroupName]="i" [class.off]="!row.value.working">
+          <mat-checkbox formControlName="working">{{ dayName(row.value.dayOfWeek) }}</mat-checkbox>
+          @if (row.value.working) {
+          <div class="hours">
+            <input class="time-input" type="time" step="1200" formControlName="start" aria-label="De la" />
+            <span class="muted">-</span>
+            <input class="time-input" type="time" step="1200" formControlName="end" aria-label="Pana la" />
+          </div>
+          } @else {
+          <span class="off-label">Zi libera</span>
           }
-        </tbody>
-      </table>
+        </div>
+        }
+      </div>
 
       @if (saveError()) {
-      <p class="form-error">{{ saveError() }}</p>
+      <p class="alert error"><span class="material-symbols-outlined">error</span>{{ saveError() }}</p>
       }
       @if (saved() && scheduleForm.pristine) {
-      <p class="saved">Programul a fost salvat.</p>
+      <p class="alert success"><span class="material-symbols-outlined">check_circle</span>Programul a fost salvat.</p>
       }
 
       <div class="schedule-actions">
         <button mat-flat-button type="submit" [disabled]="saving() || scheduleForm.pristine">
           {{ saving() ? 'Se salveaza...' : 'Salveaza programul' }}
         </button>
+        <span class="note">Programarile deja facute raman valabile.</span>
       </div>
-      <p class="note">
-        Programarile deja facute raman valabile. Clientii vor vedea orele libere dupa noul program.
-      </p>
     </form>
     }
   </section>
