@@ -27,6 +27,10 @@ export class BarberService {
     return this.http.put<WorkingHoursItem[]>('/api/barbers/me/schedule', items);
   }
 
+  cancelAppointment(id: number, reason: string): Observable<BarberAppointmentItem> {
+    return this.http.post<BarberAppointmentItem>(`/api/barbers/me/appointments/${id}/cancel`, { reason });
+  }
+
   // from / to = "yyyy-MM-dd", ambele incluse
   getMyAppointments(from: string, to: string): Observable<BarberAppointmentItem[]> {
     const params = new HttpParams().set('from', from).set('to', to);

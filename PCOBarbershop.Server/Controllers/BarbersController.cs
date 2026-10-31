@@ -16,11 +16,19 @@ public class BarbersController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IAvailabilityService _availability;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<BarbersController> _logger;
 
-    public BarbersController(AppDbContext db, IAvailabilityService availability)
+    public BarbersController(
+        AppDbContext db,
+        IAvailabilityService availability,
+        IEmailService emailService,
+        ILogger<BarbersController> logger)
     {
         _db = db;
         _availability = availability;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     // GET /api/barbers - lista frizerilor (public)
@@ -177,6 +185,80 @@ public class BarbersController : ControllerBase
             .ToListAsync();
 
         return Ok(appointments);
+    }
+
+    // POST /api/barbers/me/appointments/5/cancel - frizerul anuleaza o programare viitoare.
+    // Clientul este anuntat automat pe e-mail.
+    [Authorize(Roles = "Frizer")]
+    [HttpPost("me/appointments/{id:int}/cancel")]
+    public async Task<ActionResult<BarberAppointmentDto>> CancelAppointment(int id, CancelAppointmentRequest request)
+    {
+        var barberId = await GetCurrentBarberIdAsync();
+        if (barberId is null)
+        {
+            return NotFound(new { message = "Nu exista profil de frizer pentru acest cont." });
+        }
+
+        // Cautam doar printre programarile ACESTUI frizer: nu poate anula programarile altuia
+        var appointment = await _db.Appointments
+            .Include(a => a.Client)
+            .Include(a => a.Service)
+            .Include(a => a.Barber)
+            .FirstOrDefaultAsync(a => a.Id == id && a.BarberId == barberId);
+
+        if (appointment is null)
+        {
+            return NotFound(new { message = "Programarea nu exista." });
+        }
+
+        if (appointment.Status == AppointmentStatus.Cancelled)
+        {
+            return Conflict(new { message = "Programarea este deja anulata." });
+        }
+
+        if (appointment.StartTime <= DateTime.UtcNow)
+        {
+            return BadRequest(new { message = "Nu poti anula o programare care a inceput deja." });
+        }
+
+        appointment.Status = AppointmentStatus.Cancelled;
+        await _db.SaveChangesAsync();
+
+        await NotifyClientAboutCancellationAsync(appointment, request.Reason);
+
+        return Ok(new BarberAppointmentDto(
+            appointment.Id,
+            $"{appointment.Client.FirstName} {appointment.Client.LastName}",
+            appointment.Client.Email ?? string.Empty,
+            appointment.Service.Name,
+            appointment.Service.Price,
+            appointment.StartTime,
+            appointment.EndTime,
+            appointment.Status.ToString()));
+    }
+
+    // Daca e-mailul nu pleaca, anularea ramane valabila; doar scriem eroarea in log
+    private async Task NotifyClientAboutCancellationAsync(Appointment appointment, string? reason)
+    {
+        var client = appointment.Client;
+        var info = new AppointmentInfo(
+            appointment.Service.Name,
+            appointment.Barber.DisplayName,
+            appointment.StartTime,
+            appointment.Service.Price);
+
+        try
+        {
+            await _emailService.SendAsync(
+                client.Email!,
+                $"{client.FirstName} {client.LastName}",
+                "Programarea ta a fost anulata",
+                EmailTemplates.AppointmentCancelled(client.FirstName, info, reason, refunded: false));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Nu s-a putut trimite e-mailul de anulare pentru programarea {Id}", appointment.Id);
+        }
     }
 
     // Id-ul frizerului din tabela Barbers, pentru contul din token

@@ -106,6 +106,14 @@ section {
   opacity: 0.8;
 }
 
+.cancel-button {
+  margin-top: 0.25rem;
+  color: #b3261e;
+  min-width: 0;
+  padding: 0 0.5rem;
+  height: 28px;
+}
+
 .empty {
   opacity: 0.5;
   font-size: 0.85rem;

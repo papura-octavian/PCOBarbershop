@@ -34,6 +34,9 @@
             <span>{{ a.price | number: '1.0-2' }} RON</span>
             <span class="status">{{ statusLabel(a.status) }}</span>
           </div>
+          @if (canCancel(a)) {
+          <button mat-button type="button" class="cancel-button" (click)="cancel(a)">Anuleaza</button>
+          }
         </div>
         } @empty {
         <p class="empty">Nicio rezervare</p>

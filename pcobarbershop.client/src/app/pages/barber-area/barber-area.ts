@@ -3,16 +3,20 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BarberAppointmentItem, WorkingHoursItem } from '../../core/barber.models';
 import { BarberService } from '../../core/barber.service';
 import { statusLabel } from '../../core/booking.models';
 import {
   addDays,
+  formatSalonDate,
   formatSalonTime,
   salonDateKey,
   startOfWeek,
   toIsoDate,
 } from '../../core/date-utils';
+import { CancelDialog, CancelDialogData } from './cancel-dialog';
 
 const DAY_NAMES = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
 
@@ -29,13 +33,22 @@ interface CalendarDay {
 
 @Component({
   selector: 'app-barber-area',
-  imports: [DecimalPipe, ReactiveFormsModule, MatButtonModule, MatCheckboxModule],
+  imports: [
+    DecimalPipe,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatSnackBarModule,
+  ],
   templateUrl: './barber-area.html',
   styleUrl: './barber-area.css',
 })
 export class BarberArea implements OnInit {
   private readonly barberService = inject(BarberService);
   private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   // Programul de lucru, editabil: un rand pentru fiecare zi a saptamanii
   readonly loading = signal(true);
@@ -144,6 +157,42 @@ export class BarberArea implements OnInit {
         this.calendarLoading.set(false);
       },
     });
+  }
+
+  // Doar programarile viitoare si neanulate pot fi anulate
+  canCancel(a: BarberAppointmentItem): boolean {
+    return a.status !== 'Cancelled' && new Date(a.startUtc) > new Date();
+  }
+
+  cancel(a: BarberAppointmentItem): void {
+    const data: CancelDialogData = {
+      clientName: a.clientName,
+      serviceName: a.serviceName,
+      when: `${formatSalonDate(a.startUtc)}, ${formatSalonTime(a.startUtc)}`,
+    };
+
+    this.dialog
+      .open<CancelDialog, CancelDialogData, string>(CancelDialog, { data, width: '440px' })
+      .afterClosed()
+      .subscribe((reason) => {
+        if (reason === undefined) {
+          return;   // a renuntat
+        }
+
+        this.barberService.cancelAppointment(a.id, reason).subscribe({
+          next: (updated) => {
+            this.appointments.update((items) => items.map((i) => (i.id === updated.id ? updated : i)));
+            this.snackBar.open('Programarea a fost anulata. Clientul a fost anuntat pe e-mail.', 'OK', {
+              duration: 5000,
+            });
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.message ?? 'Nu am putut anula programarea.', 'OK', {
+              duration: 5000,
+            });
+          },
+        });
+      });
   }
 
   saveSchedule(): void {

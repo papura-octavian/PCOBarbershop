@@ -16,6 +16,12 @@
         DateTime EndUtc,
         string Status);
 
+    public class CancelAppointmentRequest
+    {
+        [System.ComponentModel.DataAnnotations.StringLength(500)]
+        public string? Reason { get; set; }
+    }
+
     // Programare vazuta de frizer: include si datele clientului
     public record BarberAppointmentDto(
         int Id,
