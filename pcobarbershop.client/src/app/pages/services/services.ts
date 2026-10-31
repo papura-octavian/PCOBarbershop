@@ -1,32 +1,31 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatRadioModule } from '@angular/material/radio';
-import { ServiceItem } from '../../core/catalog.models';
-import { CatalogService } from '../../core/catalog.service';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';  
+import { RouterLink } from '@angular/router';
+import { ServiceItem, serviceIcon } from '../../core/catalog.models';
+import { CatalogService } from '../../core/catalog.service';
 
+// Descrieri scurte afisate sub numele serviciului
+const DESCRIPTIONS: Record<string, string> = {
+  'Tuns simplu': 'Tunsoare clasica sau moderna, cu foarfeca si masina, finisata cu styling.',
+  'Tuns + Barba': 'Pachetul complet: tunsoare plus conturarea si aranjarea barbii.',
+  Barba: 'Conturare, aranjare si ingrijire a barbii, cu prosop cald.',
+};
 
 @Component({
   selector: 'app-services',
-  imports: [DecimalPipe, MatCardModule, MatRadioModule],
+  imports: [DecimalPipe, RouterLink, MatButtonModule],
   templateUrl: './services.html',
   styleUrl: './services.css',
 })
 export class Services implements OnInit {
   private readonly catalog = inject(CatalogService);
-  private readonly router = inject(Router);  
 
   readonly services = signal<ServiceItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly selectedId = signal<number | null>(null);
 
-  // Serviciul ales, calculat din lista si din id-ul selectat
-  readonly selected = computed(
-    () => this.services().find((s) => s.id === this.selectedId()) ?? null
-  );
+  readonly serviceIcon = serviceIcon;
 
   ngOnInit(): void {
     this.catalog.getServices().subscribe({
@@ -41,12 +40,7 @@ export class Services implements OnInit {
     });
   }
 
-  select(id: number): void {
-    this.selectedId.set(id);
+  description(name: string): string {
+    return DESCRIPTIONS[name] ?? 'Serviciu realizat de frizerii nostri cu experienta.';
   }
-
-  continueToBooking(): void {
-    this.router.navigate(['/book'], { queryParams: { serviceId: this.selectedId() } });
-  } 
-
 }

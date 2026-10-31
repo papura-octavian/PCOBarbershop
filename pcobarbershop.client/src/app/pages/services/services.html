@@ -1,38 +1,32 @@
-<div class="services">
-  <h1>Servicii</h1>
+<div class="page">
+  <header class="page-header">
+    <span class="eyebrow">Servicii si preturi</span>
+    <h1>Serviciile noastre</h1>
+    <p>Preturi fixe, fara surprize. Alege serviciul si rezerva direct ora care iti convine.</p>
+  </header>
 
   @if (loading()) {
-    <p>Se incarca serviciile...</p>
+  <p class="loading">Se incarca serviciile...</p>
   } @else if (error()) {
-    <p class="form-error">{{ error() }}</p>
+  <p class="alert error"><span class="material-symbols-outlined">error</span>{{ error() }}</p>
   } @else {
-    <mat-radio-group class="list"
-                     [value]="selectedId()"
-                     (change)="select($event.value)"
-                     aria-label="Alege un serviciu">
-      @for (service of services(); track service.id) {
-        <mat-card class="service" [class.selected]="service.id === selectedId()">
-          <mat-card-content>
-            <mat-radio-button [value]="service.id">
-              <span class="name">{{ service.name }}</span>
-            </mat-radio-button>
-            <div class="details">
-              <span>{{ service.durationMinutes }} min</span>
-              <span class="price">{{ service.price | number: '1.0-2' }} RON</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      }
-    </mat-radio-group>
+  <div class="list">
+    @for (service of services(); track service.id) {
+    <article class="service card">
+      <span class="icon"><span class="material-symbols-outlined">{{ serviceIcon(service.name) }}</span></span>
 
-    @if (selected(); as s) {
-      <p class="summary">
-        Ai ales <strong>{{ s.name }}</strong> ({{ s.durationMinutes }} min,
-        {{ s.price | number: '1.0-2' }} RON).
-      </p>
-      <button mat-flat-button type="button" (click)="continueToBooking()">
-        Continua la alegerea frizerului si a orei
-      </button>
-     }
+      <div class="info">
+        <h2>{{ service.name }}</h2>
+        <p class="muted">{{ description(service.name) }}</p>
+        <span class="duration"><span class="material-symbols-outlined">schedule</span> {{ service.durationMinutes }} minute</span>
+      </div>
+
+      <div class="buy">
+        <span class="price">{{ service.price | number: '1.0-2' }} <small>RON</small></span>
+        <a mat-flat-button [routerLink]="['/book']" [queryParams]="{ serviceId: service.id }">Rezerva</a>
+      </div>
+    </article>
+    }
+  </div>
   }
 </div>
