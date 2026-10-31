@@ -5,9 +5,10 @@
   align-items: start;
 }
 
+/* minmax(0, ...) impiedica randul de zile (care are scroll orizontal) sa latesca pagina */
 @media (max-width: 900px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -45,11 +46,11 @@
 }
 
 .options.services {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
 }
 
 .options.barbers {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
 }
 
 .option {
