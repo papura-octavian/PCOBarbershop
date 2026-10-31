@@ -1,107 +1,169 @@
-<div class="book">
+<div class="page">
   @if (confirmed(); as c) {
-  <h1>Rezervare inregistrata</h1>
+  <!-- Rezervarea a fost facuta: urmeaza plata -->
+  <div class="confirmed card">
+    <span class="confirmed-icon"><span class="material-symbols-outlined">event_available</span></span>
+    <h1>Ora este rezervata pentru tine</h1>
+    <p class="muted">Plateste cu cardul ca sa confirmi programarea. Daca nu platesti in cateva minute, ora se elibereaza.</p>
 
-  @if (summary(); as s) {
-  <p>
-    <strong>{{ c.serviceName }}</strong> cu <strong>{{ c.barberName }}</strong>,
-    pe <strong>{{ s.date }}</strong>, la <strong>{{ s.time }}</strong>.
-  </p>
-  }
-  <p>Pret: <strong>{{ c.price }} RON</strong></p>
-  <p>Status: <strong>{{ statusLabel(c.status) }}</strong></p>
+    <dl class="details">
+      <div><dt>Serviciu</dt><dd>{{ c.serviceName }}</dd></div>
+      <div><dt>Frizer</dt><dd>{{ c.barberName }}</dd></div>
+      @if (summary(); as s) {
+      <div><dt>Data</dt><dd>{{ s.date }}, ora {{ s.time }}</dd></div>
+      }
+      <div><dt>Status</dt><dd><span class="badge" [attr.data-status]="c.status">{{ statusLabel(c.status) }}</span></dd></div>
+      <div class="total"><dt>Total</dt><dd>{{ c.price | number: '1.0-2' }} RON</dd></div>
+    </dl>
 
-  @if (paying()) {
-  <p>Te redirectionam catre pagina securizata de plata Stripe...</p>
-  } @else {
-  <p class="hint">
-    Ora este rezervata pentru tine timp de cateva minute. Plateste cu cardul ca sa confirmi programarea.
-  </p>
-  @if (paymentError()) {
-  <p class="form-error">{{ paymentError() }}</p>
-  }
-  <div class="actions">
-    <button mat-flat-button type="button" (click)="pay()">Plateste {{ c.price }} RON cu cardul</button>
-    <button mat-stroked-button type="button" (click)="newBooking()">Rezerva alta programare</button>
-  </div>
-  }
-  } @else if (loading()) {
-  <p>Se incarca...</p>
-  } @else if (error()) {
-  <p class="form-error">{{ error() }}</p>
-  } @else {
-  <h1>Rezerva o programare</h1>
-
-  <form [formGroup]="form" class="filters">
-    <mat-form-field appearance="outline">
-      <mat-label>Serviciu</mat-label>
-      <mat-select formControlName="serviceId">
-        @for (service of services(); track service.id) {
-        <mat-option [value]="service.id">
-          {{ service.name }} ({{ service.durationMinutes }} min, {{ service.price }} RON)
-        </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Frizer</mat-label>
-      <mat-select formControlName="barberId">
-        @for (barber of barbers(); track barber.id) {
-        <mat-option [value]="barber.id">{{ barber.displayName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Data</mat-label>
-      <input matInput type="date" formControlName="date" [min]="minDate" [max]="maxDate" />
-    </mat-form-field>
-  </form>
-
-  <h2>Ore disponibile</h2>
-
-  @if (slotsLoading()) {
-  <p>Se cauta orele libere...</p>
-  } @else if (slotsError()) {
-  <p class="form-error">{{ slotsError() }}</p>
-  } @else if (!slotsLoaded()) {
-  <p class="hint">Alege serviciul, frizerul si data ca sa vezi orele libere.</p>
-  } @else if (slots().length === 0) {
-  <p>Nu sunt ore libere in aceasta zi. Incearca alta data sau alt frizer.</p>
-  } @else {
-  <div class="slots">
-    @for (slot of slots(); track slot.startUtc) {
-    <button mat-stroked-button
-            type="button"
-            class="slot"
-            [class.selected]="slot.startUtc === selectedSlot()?.startUtc"
-            (click)="selectSlot(slot)">
-      {{ slot.time }}
-    </button>
+    @if (paying()) {
+    <p class="loading">Te redirectionam catre pagina securizata de plata Stripe...</p>
+    } @else {
+    @if (paymentError()) {
+    <p class="alert error"><span class="material-symbols-outlined">error</span>{{ paymentError() }}</p>
+    }
+    <div class="actions">
+      <button mat-flat-button type="button" class="pay-button" (click)="pay()">
+        <span class="material-symbols-outlined">credit_card</span>
+        Plateste {{ c.price | number: '1.0-2' }} RON
+      </button>
+      <button mat-button type="button" (click)="newBooking()">Rezerva alta programare</button>
+    </div>
+    <p class="secure"><span class="material-symbols-outlined">lock</span> Plata se face pe pagina securizata Stripe.</p>
     }
   </div>
-  }
+  } @else {
+  <header class="page-header">
+    <span class="eyebrow">Rezervare</span>
+    <h1>Rezerva o programare</h1>
+    <p>Alege serviciul, frizerul si ora. Vezi doar orele libere, actualizate in timp real.</p>
+  </header>
 
-  @if (bookingError()) {
-  <p class="form-error">{{ bookingError() }}</p>
-  }
+  @if (loading()) {
+  <p class="loading">Se incarca...</p>
+  } @else if (error()) {
+  <p class="alert error"><span class="material-symbols-outlined">error</span>{{ error() }}</p>
+  } @else {
+  <div class="layout">
+    <div class="steps">
+      <!-- Pasul 1: serviciul -->
+      <section class="step card flat">
+        <h2><span class="step-number">1</span> Serviciul</h2>
+        <div class="options services">
+          @for (service of services(); track service.id) {
+          <button type="button"
+                  class="option"
+                  [class.selected]="current().serviceId === service.id"
+                  (click)="selectService(service.id)">
+            <span class="option-icon"><span class="material-symbols-outlined">{{ serviceIcon(service.name) }}</span></span>
+            <span class="option-text">
+              <strong>{{ service.name }}</strong>
+              <span class="muted">{{ service.durationMinutes }} min</span>
+            </span>
+            <span class="option-price">{{ service.price | number: '1.0-2' }} RON</span>
+          </button>
+          }
+        </div>
+      </section>
 
-  @if (summary(); as s) {
-  <p class="summary">
-    Ai ales <strong>{{ s.service.name }}</strong> cu <strong>{{ s.barber.displayName }}</strong>,
-    pe <strong>{{ s.date }}</strong>, la <strong>{{ s.time }}</strong>.
-  </p>
+      <!-- Pasul 2: frizerul -->
+      <section class="step card flat">
+        <h2><span class="step-number">2</span> Frizerul</h2>
+        <div class="options barbers">
+          @for (barber of barbers(); track barber.id) {
+          <button type="button"
+                  class="option"
+                  [class.selected]="current().barberId === barber.id"
+                  (click)="selectBarber(barber.id)">
+            <span class="avatar">{{ initials(barber.displayName) }}</span>
+            <strong>{{ barber.displayName }}</strong>
+          </button>
+          }
+        </div>
+      </section>
 
-  <button mat-flat-button type="button" [disabled]="booking()" (click)="reserve()">
-    {{
+      <!-- Pasul 3: data si ora -->
+      <section class="step card flat">
+        <h2><span class="step-number">3</span> Data si ora</h2>
+
+        <div class="days" role="listbox" aria-label="Alege ziua">
+          @for (day of quickDays; track day.iso) {
+          <button type="button"
+                  class="day"
+                  role="option"
+                  [attr.aria-selected]="current().date === day.iso"
+                  [class.selected]="current().date === day.iso"
+                  (click)="selectDate(day.iso)">
+            <span class="weekday">{{ day.weekday }}</span>
+            <span class="day-number">{{ day.day }}</span>
+            <span class="month">{{ day.month }}</span>
+          </button>
+          }
+        </div>
+
+        <form [formGroup]="form" class="other-date">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Alta data</mat-label>
+            <input matInput type="date" formControlName="date" [min]="minDate" [max]="maxDate" />
+          </mat-form-field>
+        </form>
+
+        <h3 class="slots-title">Ore disponibile</h3>
+        @if (slotsLoading()) {
+        <p class="loading">Se cauta orele libere...</p>
+        } @else if (slotsError()) {
+        <p class="alert error"><span class="material-symbols-outlined">error</span>{{ slotsError() }}</p>
+        } @else if (!slotsLoaded()) {
+        <p class="muted hint"><span class="material-symbols-outlined">info</span> Alege serviciul, frizerul si ziua ca sa vezi orele libere.</p>
+        } @else if (slots().length === 0) {
+        <p class="muted hint"><span class="material-symbols-outlined">event_busy</span> Nu sunt ore libere in aceasta zi. Incearca alta zi sau alt frizer.</p>
+        } @else {
+        <div class="slots">
+          @for (slot of slots(); track slot.startUtc) {
+          <button type="button"
+                  class="slot"
+                  [class.selected]="slot.startUtc === selectedSlot()?.startUtc"
+                  (click)="selectSlot(slot)">
+            {{ slot.time }}
+          </button>
+          }
+        </div>
+        }
+      </section>
+    </div>
+
+    <!-- Rezumatul, fix in dreapta pe ecrane mari -->
+    <aside class="summary card">
+      <h3>Rezumat</h3>
+      <dl class="details">
+        <div><dt>Serviciu</dt><dd>{{ selectedService()?.name ?? '-' }}</dd></div>
+        <div><dt>Frizer</dt><dd>{{ selectedBarber()?.displayName ?? '-' }}</dd></div>
+        <div><dt>Data</dt><dd>{{ current().date ? formatDate(current().date!) : '-' }}</dd></div>
+        <div><dt>Ora</dt><dd>{{ selectedSlot()?.time ?? '-' }}</dd></div>
+        <div class="total">
+          <dt>Total</dt>
+          <dd>
+            @if (selectedService(); as s) { {{ s.price | number: '1.0-2' }} RON } @else { - }
+          </dd>
+        </div>
+      </dl>
+
+      @if (bookingError()) {
+      <p class="alert error"><span class="material-symbols-outlined">error</span>{{ bookingError() }}</p>
+      }
+
+      <button mat-flat-button type="button" class="reserve" [disabled]="!summary() || booking()" (click)="reserve()">
+        {{
           booking()
             ? 'Se rezerva...'
             : auth.isAuthenticated()
-              ? 'Confirma rezervarea'
+              ? 'Rezerva si plateste'
               : 'Autentifica-te ca sa rezervi'
-    }}
-  </button>
+        }}
+      </button>
+      <p class="secure"><span class="material-symbols-outlined">lock</span> Plata securizata cu cardul prin Stripe</p>
+    </aside>
+  </div>
   }
   }
 </div>

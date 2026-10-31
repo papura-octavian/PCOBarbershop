@@ -1,41 +1,328 @@
-.book {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.filters {
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.steps {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-top: 1rem;
+  gap: 1.25rem;
+}
+
+.step h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pco-ink);
+  color: var(--pco-gold-light);
+  font-family: Inter, sans-serif;
+  font-size: 0.9rem;
+}
+
+/* ---------- Optiuni selectabile (servicii, frizeri) ---------- */
+
+.options {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.options.services {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.options.barbers {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--pco-border);
+  border-radius: 14px;
+  background: var(--pco-card);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.option:hover {
+  border-color: var(--pco-gold-light);
+}
+
+.option.selected {
+  border-color: var(--pco-gold);
+  background: #fdf8f0;
+  box-shadow: 0 0 0 3px rgba(168, 116, 47, 0.15);
+}
+
+.option-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-primary-container);
+  color: var(--pco-gold);
+}
+
+.option-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.option-text .muted {
+  font-size: 0.85rem;
+}
+
+.option-price {
+  margin-left: auto;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pco-ink);
+  color: var(--pco-gold-light);
+  font-family: var(--pco-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* ---------- Zile ---------- */
+
+.days {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.1rem 0.75rem;
+  scrollbar-width: thin;
+}
+
+.day {
+  flex: none;
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.6rem 0;
+  border: 1.5px solid var(--pco-border);
+  border-radius: 14px;
+  background: var(--pco-card);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.day:hover {
+  border-color: var(--pco-gold-light);
+}
+
+.day.selected {
+  background: var(--pco-ink);
+  border-color: var(--pco-ink);
+  color: #fff;
+}
+
+.weekday,
+.month {
+  font-size: 0.75rem;
+  color: var(--pco-muted);
+}
+
+.day.selected .weekday,
+.day.selected .month {
+  color: var(--pco-gold-light);
+}
+
+.day-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.other-date {
+  max-width: 220px;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.other-date mat-form-field {
+  width: 100%;
+}
+
+/* ---------- Ore ---------- */
+
+.slots-title {
+  font-family: Inter, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .slots {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: 0.5rem;
 }
 
+.slot {
+  height: 42px;
+  border: 1.5px solid var(--pco-border);
+  border-radius: 10px;
+  background: var(--pco-card);
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.slot:hover {
+  border-color: var(--pco-gold);
+  color: var(--pco-gold);
+}
+
 .slot.selected {
-  background: var(--mat-sys-primary, #6750a4);
-  color: var(--mat-sys-on-primary, #ffffff);
+  background: var(--pco-gold);
+  border-color: var(--pco-gold);
+  color: #fff;
 }
 
 .hint {
-  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
 }
+
+/* ---------- Rezumat ---------- */
 
 .summary {
-  margin-top: 1.5rem;
+  position: sticky;
+  top: 88px;
 }
 
-.actions {
+.details {
+  margin: 0 0 1.25rem;
+}
+
+.details div {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed var(--pco-border);
 }
 
-.form-error {
-  color: #b3261e;
+.details dt {
+  color: var(--pco-muted);
+}
+
+.details dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.details .total {
+  border-bottom: none;
+  padding-top: 0.9rem;
+}
+
+.details .total dd {
+  font-family: var(--pco-display);
+  font-size: 1.5rem;
+}
+
+.reserve,
+.pay-button {
+  width: 100%;
+  height: 48px;
+}
+
+.pay-button .material-symbols-outlined {
+  font-size: 20px;
+  margin-right: 0.4rem;
+}
+
+.secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--pco-muted);
+}
+
+.secure .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* ---------- Dupa rezervare ---------- */
+
+.confirmed {
+  max-width: 520px;
+  margin: 1rem auto;
+  text-align: center;
+  padding: 2.5rem 2rem;
+}
+
+.confirmed-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-primary-container);
+  color: var(--pco-gold);
+}
+
+.confirmed-icon .material-symbols-outlined {
+  font-size: 32px;
+}
+
+.confirmed h1 {
+  font-size: 1.75rem;
+}
+
+.confirmed .details {
+  text-align: left;
+  margin: 1.5rem 0;
+}
+
+.confirmed .actions {
+  flex-direction: column;
+  align-items: stretch;
 }

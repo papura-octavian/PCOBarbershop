@@ -1,10 +1,10 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, catchError, forkJoin, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -12,22 +12,27 @@ import { BarberItem, SlotItem } from '../../core/barber.models';
 import { BarberService } from '../../core/barber.service';
 import { AppointmentItem, statusLabel } from '../../core/booking.models';
 import { BookingService } from '../../core/booking.service';
-import { ServiceItem } from '../../core/catalog.models';
+import { ServiceItem, serviceIcon } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
 import { PaymentService } from '../../core/payment.service';
 import { addDays, toIsoDate } from '../../core/date-utils';
 
 const MAX_DAYS_AHEAD = 60;   // aceeasi valoare ca pe server
+const QUICK_DAYS = 14;       // cate zile apar ca butoane rapide
+
+const WEEKDAYS = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
+const MONTHS = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+interface QuickDay {
+  iso: string;       // "2026-11-02"
+  weekday: string;   // "Lun"
+  day: number;       // 2
+  month: string;     // "nov"
+}
 
 @Component({
   selector: 'app-book',
-  imports: [
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-  ],
+  imports: [DecimalPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],
   templateUrl: './book.html',
   styleUrl: './book.css',
 })
@@ -68,6 +73,18 @@ export class Book implements OnInit {
   readonly maxDate = toIsoDate(addDays(new Date(), MAX_DAYS_AHEAD));
 
   readonly statusLabel = statusLabel;
+  readonly serviceIcon = serviceIcon;
+
+  // Urmatoarele zile, ca butoane (pentru alte date ramane campul de tip calendar)
+  readonly quickDays: QuickDay[] = Array.from({ length: QUICK_DAYS }, (_, i) => {
+    const day = addDays(new Date(), i);
+    return {
+      iso: toIsoDate(day),
+      weekday: i === 0 ? 'Azi' : i === 1 ? 'Maine' : WEEKDAYS[day.getDay()],
+      day: day.getDate(),
+      month: MONTHS[day.getMonth()],
+    };
+  });
 
   readonly form = this.fb.group({
     serviceId: this.fb.control<number | null>(null),
@@ -154,6 +171,36 @@ export class Book implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  selectService(id: number): void {
+    this.form.patchValue({ serviceId: id });
+  }
+
+  selectBarber(id: number): void {
+    this.form.patchValue({ barberId: id });
+  }
+
+  selectDate(iso: string): void {
+    this.form.patchValue({ date: iso });
+  }
+
+  // Valorile curente din formular, pentru a marca alegerile in pagina si in rezumat
+  readonly current = computed(() => this.formValue());
+  readonly selectedService = computed(
+    () => this.services().find((s) => s.id === this.formValue().serviceId) ?? null
+  );
+  readonly selectedBarber = computed(
+    () => this.barbers().find((b) => b.id === this.formValue().barberId) ?? null
+  );
+
+  // "2026-11-02" => "02.11.2026"
+  formatDate(iso: string): string {
+    return iso.split('-').reverse().join('.');
+  }
+
+  initials(name: string): string {
+    return name.charAt(0).toUpperCase();
   }
 
   selectSlot(slot: SlotItem): void {
