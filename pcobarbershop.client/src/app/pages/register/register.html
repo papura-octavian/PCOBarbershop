@@ -1,11 +1,11 @@
-<div class="auth-container">
-  <mat-card class="auth-card">
-    <mat-card-header>
-      <mat-card-title>Creeaza cont</mat-card-title>
-    </mat-card-header>
+<div class="auth-page">
+  <div class="auth-card">
+    <span class="auth-icon"><span class="material-symbols-outlined">person_add</span></span>
+    <h1>Creeaza cont</h1>
+    <p class="subtitle">Dureaza mai putin de un minut. Iti trimitem un cod de confirmare pe e-mail.</p>
 
-    <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="submit()">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="name-row">
         <mat-form-field appearance="outline">
           <mat-label>Prenume</mat-label>
           <input matInput formControlName="firstName" autocomplete="given-name" />
@@ -21,54 +21,54 @@
           <mat-error>Numele este obligatoriu.</mat-error>
           }
         </mat-form-field>
+      </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>E-mail</mat-label>
-          <input matInput type="email" formControlName="email" autocomplete="email" />
-          @if (form.controls.email.hasError('required')) {
-          <mat-error>E-mailul este obligatoriu.</mat-error>
-          } @else if (form.controls.email.hasError('email')) {
-          <mat-error>Introdu un e-mail valid.</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Parola</mat-label>
-          <input matInput type="password" formControlName="password" autocomplete="new-password" />
-          <mat-hint>Minim 8 caractere, o cifra si o litera mare</mat-hint>
-          @if (form.controls.password.hasError('required')) {
-          <mat-error>Parola este obligatorie.</mat-error>
-          } @else if (form.controls.password.hasError('minlength')) {
-          <mat-error>Parola trebuie sa aiba minim 8 caractere.</mat-error>
-          } @else if (form.controls.password.errors) {
-          <mat-error>Parola trebuie sa contina o cifra si o litera mare.</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Confirma parola</mat-label>
-          <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
-        </mat-form-field>
-
-        @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.touched) {
-        <p class="form-error">Parolele nu coincid.</p>
+      <mat-form-field appearance="outline">
+        <mat-label>E-mail</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        <span matPrefix class="material-symbols-outlined field-icon">mail</span>
+        @if (form.controls.email.hasError('required')) {
+        <mat-error>E-mailul este obligatoriu.</mat-error>
+        } @else if (form.controls.email.hasError('email')) {
+        <mat-error>Introdu un e-mail valid.</mat-error>
         }
+      </mat-form-field>
 
-        @for (message of errors(); track message) {
-        <p class="form-error">{{ message }}</p>
+      <mat-form-field appearance="outline">
+        <mat-label>Parola</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="new-password" />
+        <span matPrefix class="material-symbols-outlined field-icon">lock</span>
+        <mat-hint>Minim 8 caractere, o cifra si o litera mare</mat-hint>
+        @if (form.controls.password.hasError('required')) {
+        <mat-error>Parola este obligatorie.</mat-error>
+        } @else if (form.controls.password.hasError('minlength')) {
+        <mat-error>Parola trebuie sa aiba minim 8 caractere.</mat-error>
+        } @else if (form.controls.password.errors) {
+        <mat-error>Parola trebuie sa contina o cifra si o litera mare.</mat-error>
         }
+      </mat-form-field>
 
-        <button mat-flat-button type="submit" [disabled]="loading()">
-          {{ loading() ? 'Se creeaza contul...' : 'Creeaza cont' }}
-        </button>
-      </form>
+      <mat-form-field appearance="outline">
+        <mat-label>Confirma parola</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        <span matPrefix class="material-symbols-outlined field-icon">lock</span>
+      </mat-form-field>
 
-      <app-google-sign-in (signedIn)="onGoogleSignedIn($event)" />
-    </mat-card-content>
+      @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.touched) {
+      <p class="alert error"><span class="material-symbols-outlined">error</span>Parolele nu coincid.</p>
+      }
 
-    <mat-card-actions>
-      <span>Ai deja cont?</span>
-      <a mat-button routerLink="/login">Autentifica-te</a>
-    </mat-card-actions>
-  </mat-card>
+      @for (message of errors(); track message) {
+      <p class="alert error"><span class="material-symbols-outlined">error</span>{{ message }}</p>
+      }
+
+      <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        {{ loading() ? 'Se creeaza contul...' : 'Creeaza cont' }}
+      </button>
+    </form>
+
+    <app-google-sign-in (signedIn)="onGoogleSignedIn($event)" />
+
+    <p class="switch">Ai deja cont? <a routerLink="/login">Autentifica-te</a></p>
+  </div>
 </div>

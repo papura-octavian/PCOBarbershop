@@ -1,70 +1,68 @@
-<div class="auth-container">
-  <mat-card class="auth-card">
-    <mat-card-header>
-      <mat-card-title>Autentificare</mat-card-title>
-    </mat-card-header>
+<div class="auth-page">
+  <div class="auth-card">
+    @if (twoFactorToken()) {
+    <span class="auth-icon"><span class="material-symbols-outlined">phonelink_lock</span></span>
+    <h1>Verificare in doi pasi</h1>
+    <p class="subtitle">
+      Introdu codul de 6 cifre din Google Authenticator sau unul dintre codurile de recuperare.
+    </p>
 
-    <mat-card-content>
-      @if (twoFactorToken()) {
-      <p class="step-info">
-        Contul tau are autentificarea in doi pasi activa. Introdu codul de 6 cifre din Google Authenticator
-        sau unul dintre codurile de recuperare.
-      </p>
-
-      <form [formGroup]="codeForm" (ngSubmit)="submitCode()">
-        <mat-form-field appearance="outline">
-          <mat-label>Cod de verificare</mat-label>
-          <input matInput formControlName="code" autocomplete="one-time-code" maxlength="20" />
-          @if (codeForm.controls.code.invalid) {
-          <mat-error>Introdu codul din aplicatie.</mat-error>
-          }
-        </mat-form-field>
-
-        @if (errorMessage()) {
-        <p class="form-error">{{ errorMessage() }}</p>
+    <form [formGroup]="codeForm" (ngSubmit)="submitCode()">
+      <mat-form-field appearance="outline">
+        <mat-label>Cod de verificare</mat-label>
+        <input matInput formControlName="code" autocomplete="one-time-code" maxlength="20" class="code-input" />
+        @if (codeForm.controls.code.invalid) {
+        <mat-error>Introdu codul din aplicatie.</mat-error>
         }
+      </mat-form-field>
 
-        <button mat-flat-button type="submit" [disabled]="loading()">
-          {{ loading() ? 'Se verifica...' : 'Verifica' }}
-        </button>
-        <button mat-button type="button" (click)="backToPassword()">Inapoi</button>
-      </form>
-      } @else {
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <mat-form-field appearance="outline">
-          <mat-label>E-mail</mat-label>
-          <input matInput type="email" formControlName="email" autocomplete="email" />
-          @if (form.controls.email.hasError('required')) {
-          <mat-error>E-mailul este obligatoriu.</mat-error>
-          } @else if (form.controls.email.hasError('email')) {
-          <mat-error>Introdu un e-mail valid.</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Parola</mat-label>
-          <input matInput type="password" formControlName="password" autocomplete="current-password" />
-          @if (form.controls.password.hasError('required')) {
-          <mat-error>Parola este obligatorie.</mat-error>
-          }
-        </mat-form-field>
-
-        @if (errorMessage()) {
-        <p class="form-error">{{ errorMessage() }}</p>
-        }
-
-        <button mat-flat-button type="submit" [disabled]="loading()">
-          {{ loading() ? 'Se autentifica...' : 'Autentifica-te' }}
-        </button>
-      </form>
-
-      <app-google-sign-in (signedIn)="onSignedIn($event)" />
+      @if (errorMessage()) {
+      <p class="alert error"><span class="material-symbols-outlined">error</span>{{ errorMessage() }}</p>
       }
-    </mat-card-content>
 
-    <mat-card-actions>
-      <span>Nu ai cont?</span>
-      <a mat-button routerLink="/register">Creeaza cont</a>
-    </mat-card-actions>
-  </mat-card>
+      <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        {{ loading() ? 'Se verifica...' : 'Verifica' }}
+      </button>
+      <button mat-button type="button" (click)="backToPassword()">Inapoi</button>
+    </form>
+    } @else {
+    <span class="auth-icon"><span class="material-symbols-outlined">content_cut</span></span>
+    <h1>Bine ai revenit</h1>
+    <p class="subtitle">Autentifica-te ca sa iti gestionezi programarile.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>E-mail</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        <span matPrefix class="material-symbols-outlined field-icon">mail</span>
+        @if (form.controls.email.hasError('required')) {
+        <mat-error>E-mailul este obligatoriu.</mat-error>
+        } @else if (form.controls.email.hasError('email')) {
+        <mat-error>Introdu un e-mail valid.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Parola</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        <span matPrefix class="material-symbols-outlined field-icon">lock</span>
+        @if (form.controls.password.hasError('required')) {
+        <mat-error>Parola este obligatorie.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorMessage()) {
+      <p class="alert error"><span class="material-symbols-outlined">error</span>{{ errorMessage() }}</p>
+      }
+
+      <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        {{ loading() ? 'Se autentifica...' : 'Autentifica-te' }}
+      </button>
+    </form>
+
+    <app-google-sign-in (signedIn)="onSignedIn($event)" />
+    }
+
+    <p class="switch">Nu ai cont? <a routerLink="/register">Creeaza unul gratuit</a></p>
+  </div>
 </div>
