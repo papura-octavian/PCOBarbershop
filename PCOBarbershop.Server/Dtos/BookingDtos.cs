@@ -7,6 +7,7 @@
 
     public record CreateAppointmentRequest(int BarberId, int ServiceId, DateTime StartUtc);
 
+    // PaymentExpiresAt: pana cand trebuie platita (doar pentru PendingPayment)
     public record AppointmentDto(
         int Id,
         string BarberName,
@@ -14,7 +15,12 @@
         decimal Price,
         DateTime StartUtc,
         DateTime EndUtc,
-        string Status);
+        string Status,
+        DateTime? PaymentExpiresAt);
+
+    public record CheckoutResponse(string Url);
+
+    public record ConfirmPaymentRequest(string SessionId);
 
     public class CancelAppointmentRequest
     {

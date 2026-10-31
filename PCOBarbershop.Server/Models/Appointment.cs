@@ -19,4 +19,10 @@ public class Appointment
 
     public AppointmentStatus Status { get; set; } = AppointmentStatus.PendingPayment;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Plata (Stripe). Programarea neplatita pana la PaymentExpiresAt se anuleaza automat.
+    public DateTime? PaymentExpiresAt { get; set; }
+    public string? StripeSessionId { get; set; }
+    public string? StripePaymentIntentId { get; set; }
+    public DateTime? PaidAt { get; set; }
 }

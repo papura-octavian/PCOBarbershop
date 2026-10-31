@@ -10,11 +10,21 @@
   }
   <p>Pret: <strong>{{ c.price }} RON</strong></p>
   <p>Status: <strong>{{ statusLabel(c.status) }}</strong></p>
-  <p class="hint">
-    Plata online se adauga la taskul urmator. Pana atunci rezervarea ramane in asteptarea platii.
-  </p>
 
-  <button mat-flat-button type="button" (click)="newBooking()">Rezerva alta programare</button>
+  @if (paying()) {
+  <p>Te redirectionam catre pagina securizata de plata Stripe...</p>
+  } @else {
+  <p class="hint">
+    Ora este rezervata pentru tine timp de cateva minute. Plateste cu cardul ca sa confirmi programarea.
+  </p>
+  @if (paymentError()) {
+  <p class="form-error">{{ paymentError() }}</p>
+  }
+  <div class="actions">
+    <button mat-flat-button type="button" (click)="pay()">Plateste {{ c.price }} RON cu cardul</button>
+    <button mat-stroked-button type="button" (click)="newBooking()">Rezerva alta programare</button>
+  </div>
+  }
   } @else if (loading()) {
   <p>Se incarca...</p>
   } @else if (error()) {

@@ -71,6 +71,15 @@ mat-card-content {
   opacity: 0.7;
 }
 
+mat-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0 16px 16px;
+}
+
 .form-error {
   color: #b3261e;
 }

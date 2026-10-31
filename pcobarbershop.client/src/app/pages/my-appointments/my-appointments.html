@@ -47,5 +47,13 @@
         <span class="status" [attr.data-status]="a.status">{{ statusLabel(a.status) }}</span>
       </div>
     </mat-card-content>
+    @if (canPay(a)) {
+    <mat-card-actions>
+      <span class="hint">Plateste pana la {{ time(a.paymentExpiresAt!) }}, altfel ora se elibereaza.</span>
+      <button mat-flat-button type="button" [disabled]="payingId() === a.id" (click)="pay(a)">
+        {{ payingId() === a.id ? 'Se deschide plata...' : 'Plateste cu cardul' }}
+      </button>
+    </mat-card-actions>
+    }
   </mat-card>
 </ng-template>

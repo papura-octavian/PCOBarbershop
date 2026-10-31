@@ -9,6 +9,7 @@ import { Services } from './pages/services/services';
 import { Book } from './pages/book/book';
 import { ConfirmEmail } from './pages/confirm-email/confirm-email';
 import { MyAppointments } from './pages/my-appointments/my-appointments';
+import { PaymentSuccess } from './pages/payment-success/payment-success';
 
 const routes: Routes = [
   { path: '', component: Home, pathMatch: 'full' },
@@ -19,6 +20,7 @@ const routes: Routes = [
   { path: 'services', component: Services },
   { path: 'book', component: Book },
   { path: 'my-appointments', component: MyAppointments, canActivate: [roleGuard('Client')] },
+  { path: 'payment/success', component: PaymentSuccess, canActivate: [roleGuard('Client')] },
   { path: '**', redirectTo: '' },
 ];
 

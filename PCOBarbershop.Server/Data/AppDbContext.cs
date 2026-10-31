@@ -52,6 +52,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             e.Property(a => a.Status).HasConversion<string>().HasMaxLength(20);
 
             e.HasIndex(a => new { a.BarberId, a.StartTime });
+
+            e.Property(a => a.StripeSessionId).HasMaxLength(255);
+            e.Property(a => a.StripePaymentIntentId).HasMaxLength(255);
+            e.HasIndex(a => a.StripeSessionId);
         });
     }
 }

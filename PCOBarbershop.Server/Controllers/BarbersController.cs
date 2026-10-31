@@ -17,17 +17,20 @@ public class BarbersController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IAvailabilityService _availability;
     private readonly IEmailService _emailService;
+    private readonly IPaymentService _payments;
     private readonly ILogger<BarbersController> _logger;
 
     public BarbersController(
         AppDbContext db,
         IAvailabilityService availability,
         IEmailService emailService,
+        IPaymentService payments,
         ILogger<BarbersController> logger)
     {
         _db = db;
         _availability = availability;
         _emailService = emailService;
+        _payments = payments;
         _logger = logger;
     }
 
@@ -224,7 +227,21 @@ public class BarbersController : ControllerBase
         appointment.Status = AppointmentStatus.Cancelled;
         await _db.SaveChangesAsync();
 
-        await NotifyClientAboutCancellationAsync(appointment, request.Reason);
+        // Daca programarea era platita, returnam banii clientului
+        var refunded = false;
+        if (appointment.StripePaymentIntentId is not null)
+        {
+            try
+            {
+                refunded = await _payments.RefundAsync(appointment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Refund esuat pentru programarea {Id}", appointment.Id);
+            }
+        }
+
+        await NotifyClientAboutCancellationAsync(appointment, request.Reason, refunded);
 
         return Ok(new BarberAppointmentDto(
             appointment.Id,
@@ -238,7 +255,7 @@ public class BarbersController : ControllerBase
     }
 
     // Daca e-mailul nu pleaca, anularea ramane valabila; doar scriem eroarea in log
-    private async Task NotifyClientAboutCancellationAsync(Appointment appointment, string? reason)
+    private async Task NotifyClientAboutCancellationAsync(Appointment appointment, string? reason, bool refunded)
     {
         var client = appointment.Client;
         var info = new AppointmentInfo(
@@ -253,7 +270,7 @@ public class BarbersController : ControllerBase
                 client.Email!,
                 $"{client.FirstName} {client.LastName}",
                 "Programarea ta a fost anulata",
-                EmailTemplates.AppointmentCancelled(client.FirstName, info, reason, refunded: false));
+                EmailTemplates.AppointmentCancelled(client.FirstName, info, reason, refunded));
         }
         catch (Exception ex)
         {

@@ -1,0 +1,36 @@
+<div class="payment">
+  @if (loading()) {
+  <p>Se verifica plata...</p>
+  } @else if (error()) {
+  <h1>Plata nu a putut fi verificata</h1>
+  <p class="form-error">{{ error() }}</p>
+  <a mat-flat-button routerLink="/my-appointments">Vezi programarile mele</a>
+  } @else if (appointment(); as a) {
+  @if (a.status === 'Confirmed') {
+  <h1>Plata a reusit!</h1>
+  <p>Programarea ta este confirmata. Ti-am trimis detaliile si pe e-mail.</p>
+  } @else if (a.status === 'Cancelled') {
+  <h1>Programarea a expirat</h1>
+  <p class="form-error">
+    Plata a ajuns dupa ce timpul de rezervare a expirat, asa ca suma a fost returnata automat pe card.
+  </p>
+  } @else {
+  <h1>Plata este in curs de procesare</h1>
+  <p>Reincarca pagina peste cateva secunde.</p>
+  }
+
+  <mat-card>
+    <mat-card-content>
+      <p><strong>{{ a.serviceName }}</strong> cu <strong>{{ a.barberName }}</strong></p>
+      <p>{{ date(a.startUtc) }}, ora {{ time(a.startUtc) }}</p>
+      <p>Pret: <strong>{{ a.price | number: '1.0-2' }} RON</strong></p>
+      <p>Status: <strong>{{ statusLabel(a.status) }}</strong></p>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="actions">
+    <a mat-flat-button routerLink="/my-appointments">Programarile mele</a>
+    <a mat-stroked-button routerLink="/book">Rezerva alta programare</a>
+  </div>
+  }
+</div>

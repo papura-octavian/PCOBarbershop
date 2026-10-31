@@ -12,6 +12,7 @@ export interface AppointmentItem {
   startUtc: string;
   endUtc: string;
   status: string;   // PendingPayment | Confirmed | Cancelled
+  paymentExpiresAt: string | null;   // pana cand se poate plati (doar PendingPayment)
 }
 
 const STATUS_LABELS: Record<string, string> = {

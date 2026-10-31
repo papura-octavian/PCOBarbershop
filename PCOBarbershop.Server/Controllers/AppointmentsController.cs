@@ -8,6 +8,8 @@ using PCOBarbershop.Server.Data;
 using PCOBarbershop.Server.Dtos;
 using PCOBarbershop.Server.Models;
 using PCOBarbershop.Server.Services;
+using Microsoft.Extensions.Options;
+using PCOBarbershop.Server.Settings;
 
 namespace PCOBarbershop.Server.Controllers;
 
@@ -17,11 +19,13 @@ public class AppointmentsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IAvailabilityService _availability;
+    private readonly StripeSettings _stripeSettings;
 
-    public AppointmentsController(AppDbContext db, IAvailabilityService availability)
+    public AppointmentsController(AppDbContext db, IAvailabilityService availability, IOptions<StripeSettings> stripeOptions)
     {
         _db = db;
         _availability = availability;
+        _stripeSettings = stripeOptions.Value;
     }
 
     // POST /api/appointments - doar clientii pot face rezervari
@@ -67,7 +71,9 @@ public class AppointmentsController : ControllerBase
             ServiceId = service.Id,
             StartTime = request.StartUtc,
             EndTime = request.StartUtc.AddMinutes(service.DurationMinutes),
-            Status = AppointmentStatus.PendingPayment
+            Status = AppointmentStatus.PendingPayment,
+            // Slotul ramane rezervat doar cateva minute; daca nu se plateste, se elibereaza automat
+            PaymentExpiresAt = DateTime.UtcNow.AddMinutes(_stripeSettings.PaymentTimeoutMinutes)
         };
 
         _db.Appointments.Add(appointment);
@@ -89,7 +95,8 @@ public class AppointmentsController : ControllerBase
             service.Price,
             appointment.StartTime,
             appointment.EndTime,
-            appointment.Status.ToString());
+            appointment.Status.ToString(),
+            appointment.PaymentExpiresAt);
 
         return Created($"/api/appointments/{appointment.Id}", dto);
     }
@@ -112,7 +119,8 @@ public class AppointmentsController : ControllerBase
                 a.Service.Price,
                 a.StartTime,
                 a.EndTime,
-                a.Status.ToString()))
+                a.Status.ToString(),
+                a.Status == AppointmentStatus.PendingPayment ? a.PaymentExpiresAt : null))
             .ToListAsync();
 
         return Ok(appointments);

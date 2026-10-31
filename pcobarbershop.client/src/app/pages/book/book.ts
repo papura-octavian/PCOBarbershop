@@ -14,6 +14,7 @@ import { AppointmentItem, statusLabel } from '../../core/booking.models';
 import { BookingService } from '../../core/booking.service';
 import { ServiceItem } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
+import { PaymentService } from '../../core/payment.service';
 import { addDays, toIsoDate } from '../../core/date-utils';
 
 const MAX_DAYS_AHEAD = 60;   // aceeasi valoare ca pe server
@@ -37,6 +38,7 @@ export class Book implements OnInit {
   private readonly catalog = inject(CatalogService);
   private readonly barberService = inject(BarberService);
   private readonly bookingService = inject(BookingService);
+  private readonly payments = inject(PaymentService);
   readonly auth = inject(AuthService);
 
   // Datele de baza (servicii si frizeri)
@@ -56,6 +58,10 @@ export class Book implements OnInit {
   readonly booking = signal(false);
   readonly bookingError = signal<string | null>(null);
   readonly confirmed = signal<AppointmentItem | null>(null);
+
+  // Plata
+  readonly paying = signal(false);
+  readonly paymentError = signal<string | null>(null);
 
   // Limitele selectorului de data
   readonly minDate = toIsoDate(new Date());
@@ -181,6 +187,8 @@ export class Book implements OnInit {
         next: (appointment) => {
           this.booking.set(false);
           this.confirmed.set(appointment);
+          // Rezervarea e facuta (slotul e tinut cateva minute): trecem direct la plata
+          this.pay();
         },
         error: (err) => {
           this.booking.set(false);
@@ -197,8 +205,27 @@ export class Book implements OnInit {
       });
   }
 
+  pay(): void {
+    const appointment = this.confirmed();
+    if (!appointment) {
+      return;
+    }
+
+    this.paying.set(true);
+    this.paymentError.set(null);
+
+    this.payments.createCheckout(appointment.id).subscribe({
+      next: (url) => this.payments.redirectTo(url),
+      error: (err) => {
+        this.paying.set(false);
+        this.paymentError.set(err?.error?.message ?? 'Nu am putut porni plata. Incearca din nou.');
+      },
+    });
+  }
+
   newBooking(): void {
     this.confirmed.set(null);
+    this.paymentError.set(null);
     this.form.reset({ serviceId: null, barberId: null, date: '' });
   }
 }
