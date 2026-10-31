@@ -1,7 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AppointmentItem, statusLabel } from '../../core/booking.models';
 import { formatSalonDate, formatSalonTime } from '../../core/date-utils';
@@ -10,7 +9,7 @@ import { PaymentService } from '../../core/payment.service';
 // Pagina pe care Stripe intoarce clientul dupa plata (?session_id=...)
 @Component({
   selector: 'app-payment-success',
-  imports: [DecimalPipe, RouterLink, MatCardModule, MatButtonModule],
+  imports: [DecimalPipe, RouterLink, MatButtonModule],
   templateUrl: './payment-success.html',
   styleUrl: './payment-success.css',
 })

@@ -1,19 +1,78 @@
-.payment {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.result {
+  max-width: 520px;
+  margin: 1rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
 }
 
-mat-card {
-  margin: 1rem 0;
+.result h1 {
+  font-size: 1.8rem;
+}
+
+.result-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.result-icon .material-symbols-outlined {
+  font-size: 38px;
+}
+
+.result-icon.success {
+  background: var(--pco-success-bg);
+  color: var(--pco-success);
+}
+
+.result-icon.error {
+  background: var(--pco-danger-bg);
+  color: var(--pco-danger);
+}
+
+.result-icon.pending {
+  background: var(--pco-warning-bg);
+  color: var(--pco-warning);
+}
+
+.center {
+  justify-content: center;
+}
+
+.details {
+  margin: 1.75rem 0;
+  text-align: left;
+}
+
+.details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px dashed var(--pco-border);
+}
+
+.details dt {
+  color: var(--pco-muted);
+}
+
+.details dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.details .total {
+  border-bottom: none;
+}
+
+.details .total dd {
+  font-family: var(--pco-display);
+  font-size: 1.4rem;
 }
 
 .actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.form-error {
-  color: #b3261e;
+  justify-content: center;
 }
