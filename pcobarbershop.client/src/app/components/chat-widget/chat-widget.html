@@ -1,0 +1,101 @@
+<!-- Booking assistant, fixed in the bottom-right corner. Hidden for barbers (it is for clients). -->
+@if (!auth.hasRole('Frizer')) {
+<div class="chat-root">
+  @if (isOpen()) {
+  <section class="chat-panel" role="dialog" aria-label="Asistent de programari">
+    <header class="chat-header">
+      <span class="chat-avatar"><span class="material-symbols-outlined">content_cut</span></span>
+      <div class="chat-title">
+        <strong>Asistent PCO</strong>
+        <span>Verifica orele libere ale frizerilor</span>
+      </div>
+      @if (messages().length > 0) {
+      <button type="button" class="icon-button" (click)="reset()" aria-label="Conversatie noua" title="Conversatie noua">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+      }
+      <button type="button" class="icon-button" (click)="toggle()" aria-label="Inchide asistentul" title="Inchide">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    @if (auth.hasRole('Client')) {
+    <div class="chat-messages" #scroller>
+      @if (messages().length === 0) {
+      <div class="chat-welcome">
+        <p>Salut! Te pot ajuta sa gasesti o ora libera. Spune-mi frizerul, serviciul si ziua.</p>
+        <div class="suggestions">
+          @for (suggestion of suggestions; track suggestion) {
+          <button type="button" class="suggestion" (click)="send(suggestion)">{{ suggestion }}</button>
+          }
+        </div>
+      </div>
+      }
+
+      @for (message of messages(); track $index) {
+      <div
+        class="bubble"
+        [class.user]="message.role === 'user'"
+        [class.assistant]="message.role === 'assistant'"
+        [innerHTML]="format(message.content)"
+      ></div>
+      }
+
+      @if (isSending()) {
+      <div class="bubble assistant typing" aria-label="Asistentul scrie">
+        <span></span><span></span><span></span>
+      </div>
+      }
+
+      @if (isRedirecting()) {
+      <div class="chat-payment" role="status">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        Te duc la plata securizata...
+      </div>
+      }
+
+      @if (error(); as errorText) {
+      <div class="chat-error" role="alert">
+        <span class="material-symbols-outlined">error</span>
+        {{ errorText }}
+      </div>
+      }
+    </div>
+
+    <form class="chat-input" (submit)="$event.preventDefault(); send()">
+      <textarea
+        #inputBox
+        rows="1"
+        maxlength="1000"
+        placeholder="Scrie un mesaj..."
+        aria-label="Mesaj pentru asistent"
+        [value]="draft()"
+        [disabled]="isSending() || isRedirecting()"
+        (input)="onInput($event)"
+        (keydown)="onKeydown($event)"
+      ></textarea>
+      <button type="submit" class="send-button" [disabled]="isSending() || isRedirecting() || !draft().trim()" aria-label="Trimite">
+        <span class="material-symbols-outlined">send</span>
+      </button>
+    </form>
+    } @else {
+    <div class="chat-login">
+      <span class="material-symbols-outlined">lock</span>
+      <p>Autentifica-te ca sa vorbesti cu asistentul de programari.</p>
+      <a routerLink="/login" class="login-button" (click)="toggle()">Autentificare</a>
+    </div>
+    }
+  </section>
+  }
+
+  <button
+    type="button"
+    class="chat-fab"
+    (click)="toggle()"
+    [attr.aria-label]="isOpen() ? 'Inchide asistentul' : 'Deschide asistentul'"
+    [attr.aria-expanded]="isOpen()"
+  >
+    <span class="material-symbols-outlined">{{ isOpen() ? 'close' : 'chat' }}</span>
+  </button>
+</div>
+}

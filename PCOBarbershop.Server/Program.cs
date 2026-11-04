@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using PCOBarbershop.Server.Services;
 using PCOBarbershop.Server.Settings;
+using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,7 @@ builder.Services
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection(SmtpSettings.SectionName));
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -55,8 +57,20 @@ builder.Services.AddHostedService<UnpaidAppointmentsCleanupService>();
 builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection(GoogleSettings.SectionName));
 builder.Services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
 
+// AI assistant: one shared chat client (singleton) that talks to the local Ollama server.
+// UseFunctionInvocation adds the tool loop: when the model asks for a tool, it runs it and sends the result back.
+var ollamaSettings = builder.Configuration.GetSection(OllamaSettings.SectionName).Get<OllamaSettings>()
+    ?? throw new InvalidOperationException("The Ollama section is missing from configuration.");
+
+builder.Services
+    .AddChatClient(new OllamaSharp.OllamaApiClient(new Uri(ollamaSettings.Endpoint), ollamaSettings.Model))
+    .UseFunctionInvocation();
+
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("Sectiunea Jwt lipseste din configuratie.");
+
+builder.Services.AddScoped<AssistantTools>();
+builder.Services.AddScoped<IAssistantService, AssistantService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
