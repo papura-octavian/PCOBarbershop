@@ -6,11 +6,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { App } from './app';
 import { AppRoutingModule } from './app-routing-module';
+import { ChatWidget } from './components/chat-widget/chat-widget';
 import { authInterceptor } from './core/auth.interceptor';
 
 @NgModule({
   declarations: [App],
-  imports: [BrowserModule, AppRoutingModule, MatToolbarModule, MatButtonModule, MatMenuModule],
+  imports: [BrowserModule, AppRoutingModule, MatToolbarModule, MatButtonModule, MatMenuModule, ChatWidget],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
