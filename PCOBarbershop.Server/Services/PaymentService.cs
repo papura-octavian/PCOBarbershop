@@ -12,8 +12,9 @@ public interface IPaymentService
 {
     bool IsConfigured { get; }
 
-    // Intoarce adresa paginii de plata Stripe Checkout pentru o programare neplatita
-    Task<string> CreateCheckoutUrlAsync(Appointment appointment);
+    // Intoarce adresa paginii de plata Stripe Checkout pentru o programare neplatita.
+    // requestOrigin = adresa de pe care clientul foloseste aplicatia (header-ul Origin al cererii)
+    Task<string> CreateCheckoutUrlAsync(Appointment appointment, string? requestOrigin);
 
     // Verifica la Stripe sesiunea si confirma programarea daca e platita (idempotent)
     Task<Appointment?> ConfirmFromSessionAsync(string sessionId);
@@ -48,18 +49,26 @@ public class PaymentService : IPaymentService
 
     private StripeClient Client => new(_settings.SecretKey);
 
-    public async Task<string> CreateCheckoutUrlAsync(Appointment appointment)
+    public async Task<string> CreateCheckoutUrlAsync(Appointment appointment, string? requestOrigin)
     {
         var sessions = new SessionService(Client);
+        var clientUrl = ResolveClientUrl(requestOrigin);
 
         // Daca exista deja o sesiune deschisa pentru programare, o refolosim:
         // asa clientul nu poate plati de doua ori aceeasi programare.
+        Session? replaced = null;
         if (appointment.StripeSessionId is not null)
         {
             var existing = await sessions.GetAsync(appointment.StripeSessionId);
             if (existing.Status == "open" && existing.Url is not null)
             {
-                return existing.Url;
+                if (existing.SuccessUrl.StartsWith(clientUrl + "/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return existing.Url;
+                }
+
+                // Sesiunea veche l-ar intoarce pe client pe alta adresa: o inlocuim cu una noua
+                replaced = existing;
             }
         }
 
@@ -93,8 +102,8 @@ public class PaymentService : IPaymentService
                     }
                 }
             ],
-            SuccessUrl = $"{_settings.ClientUrl.TrimEnd('/')}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"{_settings.ClientUrl.TrimEnd('/')}/my-appointments?payment=cancelled"
+            SuccessUrl = $"{clientUrl}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            CancelUrl = $"{clientUrl}/my-appointments?payment=cancelled"
         };
 
         var session = await sessions.CreateAsync(options);
@@ -103,7 +112,33 @@ public class PaymentService : IPaymentService
         appointment.PaymentExpiresAt = expiresAt;
         await _db.SaveChangesAsync();
 
+        // Inchidem sesiunea veche abia acum, cand programarea e legata de cea noua:
+        // webhook-ul ei de expirare nu mai gaseste programarea, deci nu o anuleaza.
+        if (replaced is not null)
+        {
+            await sessions.ExpireAsync(replaced.Id);
+        }
+
         return session.Url;
+    }
+
+    // Adresa la care Stripe intoarce clientul dupa plata: cea de pe care foloseste aplicatia acum.
+    // Browserul tine tokenul de autentificare separat pe fiecare adresa ("https://localhost:49297"
+    // si "https://127.0.0.1:49297" sunt site-uri diferite), deci intoarcerea pe alta adresa
+    // l-ar gasi pe client nelogat. Acceptam doar adresa configurata sau o adresa locala.
+    private string ResolveClientUrl(string? requestOrigin)
+    {
+        var configured = _settings.ClientUrl.TrimEnd('/');
+
+        if (Uri.TryCreate(requestOrigin, UriKind.Absolute, out var origin)
+            && (origin.Scheme == Uri.UriSchemeHttps || origin.Scheme == Uri.UriSchemeHttp)
+            && Uri.TryCreate(configured, UriKind.Absolute, out var allowed)
+            && (origin.Host == allowed.Host || (origin.IsLoopback && allowed.IsLoopback)))
+        {
+            return origin.GetLeftPart(UriPartial.Authority);
+        }
+
+        return configured;
     }
 
     public async Task<Appointment?> ConfirmFromSessionAsync(string sessionId)
