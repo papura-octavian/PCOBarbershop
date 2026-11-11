@@ -201,6 +201,13 @@ public class AuthController : ControllerBase
 
                 await _userManager.AddToRoleAsync(user, "Client");
             }
+            else if (!user.EmailConfirmed)
+            {
+                // Contul a fost creat cu parola, dar e-mailul nu a fost confirmat: nu stim cine l-a creat.
+                // Stergem parola, ca acea persoana sa nu poata intra in contul proprietarului real
+                // al adresei (cel care tocmai a dovedit prin Google ca adresa e a lui).
+                await _userManager.RemovePasswordAsync(user);
+            }
 
             await _userManager.AddLoginAsync(user, new UserLoginInfo(GoogleProvider, googleUser.Subject, "Google"));
         }
