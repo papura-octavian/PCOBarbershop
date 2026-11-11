@@ -59,8 +59,10 @@ builder.Services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
 
 // AI assistant: one shared chat client (singleton) that talks to the local Ollama server.
 // UseFunctionInvocation adds the tool loop: when the model asks for a tool, it runs it and sends the result back.
+// The Ollama section is optional (it exists only in appsettings.Development.json):
+// without it the defaults from OllamaSettings are used, so the app still starts.
 var ollamaSettings = builder.Configuration.GetSection(OllamaSettings.SectionName).Get<OllamaSettings>()
-    ?? throw new InvalidOperationException("The Ollama section is missing from configuration.");
+    ?? new OllamaSettings();
 
 builder.Services
     .AddChatClient(new OllamaSharp.OllamaApiClient(new Uri(ollamaSettings.Endpoint), ollamaSettings.Model))
