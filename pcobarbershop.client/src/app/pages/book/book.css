@@ -173,12 +173,14 @@
 }
 
 .other-date {
+  width: 100%;
   max-width: 220px;
   margin: 0.5rem 0 1.25rem;
+  cursor: pointer;
 }
 
-.other-date mat-form-field {
-  width: 100%;
+.other-date input {
+  cursor: pointer;
 }
 
 /* ---------- Ore ---------- */

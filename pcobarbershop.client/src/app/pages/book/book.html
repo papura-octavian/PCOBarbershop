@@ -101,12 +101,19 @@
           }
         </div>
 
-        <form [formGroup]="form" class="other-date">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Alta data</mat-label>
-            <input matInput type="date" formControlName="date" [min]="minDate" [max]="maxDate" />
-          </mat-form-field>
-        </form>
+        <!-- Alta data: un click pe camp deschide calendarul (nu se scrie de mana) -->
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="other-date" (click)="picker.open()">
+          <mat-label>Alta data</mat-label>
+          <input matInput
+                 readonly
+                 [matDatepicker]="picker"
+                 [min]="minDate"
+                 [max]="maxDate"
+                 [value]="pickerDate()"
+                 (dateChange)="onDatePicked($event.value)" />
+          <mat-datepicker-toggle matIconSuffix [for]="picker" />
+          <mat-datepicker #picker />
+        </mat-form-field>
 
         <h3 class="slots-title">Ore disponibile</h3>
         @if (slotsLoading()) {
