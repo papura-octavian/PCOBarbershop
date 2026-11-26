@@ -11,6 +11,7 @@ namespace PCOBarbershop.Server.Settings
         public string Currency { get; set; } = "ron";
 
         // Adresa aplicatiei Angular, unde Stripe trimite clientul dupa plata
+        // (folosita daca cererea nu spune de pe ce adresa vine; vezi PaymentService.ResolveClientUrl)
         public string ClientUrl { get; set; } = "https://localhost:49297";
 
         // Cat timp tine ocupat slotul o programare neplatita

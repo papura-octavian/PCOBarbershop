@@ -63,7 +63,7 @@ public class PaymentsController : ControllerBase
 
         try
         {
-            var url = await _payments.CreateCheckoutUrlAsync(appointment);
+            var url = await _payments.CreateCheckoutUrlAsync(appointment, Request.Headers.Origin.ToString());
             return Ok(new CheckoutResponse(url));
         }
         catch (StripeException ex)

@@ -1,8 +1,10 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +17,7 @@ import { BookingService } from '../../core/booking.service';
 import { ServiceItem, serviceIcon } from '../../core/catalog.models';
 import { CatalogService } from '../../core/catalog.service';
 import { PaymentService } from '../../core/payment.service';
-import { addDays, toIsoDate } from '../../core/date-utils';
+import { addDays, fromIsoDate, toIsoDate } from '../../core/date-utils';
 
 const MAX_DAYS_AHEAD = 60;   // aceeasi valoare ca pe server
 const QUICK_DAYS = 14;       // cate zile apar ca butoane rapide
@@ -32,7 +34,9 @@ interface QuickDay {
 
 @Component({
   selector: 'app-book',
-  imports: [DecimalPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [DecimalPipe, MatFormFieldModule, MatInputModule, MatButtonModule, MatDatepickerModule],
+  // Calendarul (mat-datepicker) lucreaza cu obiecte Date si afiseaza lunile si zilele in romana
+  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'ro-RO' }],
   templateUrl: './book.html',
   styleUrl: './book.css',
 })
@@ -68,14 +72,14 @@ export class Book implements OnInit {
   readonly paying = signal(false);
   readonly paymentError = signal<string | null>(null);
 
-  // Limitele selectorului de data
-  readonly minDate = toIsoDate(new Date());
-  readonly maxDate = toIsoDate(addDays(new Date(), MAX_DAYS_AHEAD));
+  // Limitele calendarului: de azi pana peste MAX_DAYS_AHEAD zile
+  readonly minDate = fromIsoDate(toIsoDate(new Date()));
+  readonly maxDate = addDays(this.minDate, MAX_DAYS_AHEAD);
 
   readonly statusLabel = statusLabel;
   readonly serviceIcon = serviceIcon;
 
-  // Urmatoarele zile, ca butoane (pentru alte date ramane campul de tip calendar)
+  // Urmatoarele zile, ca butoane (pentru alte date se deschide calendarul)
   readonly quickDays: QuickDay[] = Array.from({ length: QUICK_DAYS }, (_, i) => {
     const day = addDays(new Date(), i);
     return {
@@ -185,6 +189,13 @@ export class Book implements OnInit {
     this.form.patchValue({ date: iso });
   }
 
+  // Ziua aleasa in calendarul pop-up
+  onDatePicked(date: Date | null): void {
+    if (date) {
+      this.selectDate(toIsoDate(date));
+    }
+  }
+
   // Valorile curente din formular, pentru a marca alegerile in pagina si in rezumat
   readonly current = computed(() => this.formValue());
   readonly selectedService = computed(
@@ -193,6 +204,12 @@ export class Book implements OnInit {
   readonly selectedBarber = computed(
     () => this.barbers().find((b) => b.id === this.formValue().barberId) ?? null
   );
+
+  // Data din formular ("2026-11-02") ca obiect Date, pentru calendar
+  readonly pickerDate = computed(() => {
+    const date = this.formValue().date;
+    return date ? fromIsoDate(date) : null;
+  });
 
   // "2026-11-02" => "02.11.2026"
   formatDate(iso: string): string {

@@ -19,12 +19,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-// Pagini pentru vizitatori (login, register): daca esti deja logat, te duce acasa
-export const guestGuard: CanActivateFn = () => {
+// Pagini pentru vizitatori (login, register): daca esti deja logat, te duce
+// la pagina ceruta initial (returnUrl) sau acasa
+export const guestGuard: CanActivateFn = (route) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.isAuthenticated() ? router.createUrlTree(['/']) : true;
+  if (!auth.isAuthenticated()) {
+    return true;
+  }
+  return router.parseUrl(safeReturnUrl(route.queryParamMap.get('returnUrl')));
 };
 
 // Pagini pentru un anumit rol, de exemplu roleGuard('Frizer')

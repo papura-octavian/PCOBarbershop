@@ -25,7 +25,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && token && !isAuthEndpoint) {
         auth.logout();
-        router.navigate(['/login']);
+        // Retinem pagina curenta, ca dupa login sa te intorci la ea
+        router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
       }
       return throwError(() => error);
     })
